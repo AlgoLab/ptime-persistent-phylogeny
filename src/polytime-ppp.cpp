@@ -185,7 +185,7 @@ ConflictGraph::ConflictGraph (int** m, int righe, int colonne) {
                         if (i < t->value) {
                                 archi_gabry[x][0]= i;
                                 archi_gabry[x][1]=t->value;
-                                x=x+1;
+                                x++;
                         }
                         t = t->next;
                 }
@@ -216,10 +216,10 @@ int ConflictGraph::insert_edge(int i, int j) {
 // NB: i and j are the indexes of the matrix
 bool ConflictGraph::red_conflict(int** m, int righe, int colonne, int i, int j) {
         int k;
-
-        int flag1, flag2, flag3, flag4;
-        flag1 = flag2 = flag3 = flag4 =0;
-
+        int flag1 = 0;
+        int flag2 = 0;
+        int flag3 = 0;
+        int flag4 = 0;
 
 // controllo che i due caratteri appartengono alla stessa componente e che le specie considerate non siano ancora state realizzate
         if (comp_colonne[i]==comp_colonne[j]){
@@ -262,14 +262,11 @@ int ConflictGraph::print_graph() {
         // the arcs and the singletons
         for (i = 0; i < get_vertex(); i++) {
                 t = adj[i];
-                if (t == NULL) cout << mapping_chars[i] << endl;        // it prints also singletons (i.e., unconnected vertexes)
                 while (t != NULL) {
                         if (i < t->value) cout << mapping_chars[i] << " - " << mapping_chars[t->value] << endl;
                         t = t->next;
                 }
         }
-
-
         return 0;
 };
 
@@ -546,8 +543,6 @@ int main(int argc, char *argv[]) {
                                 GRB[i][j]=matriceO[i][j];
                 };
 
-                //  printMatrix(GRB, righeO, colonneO);
-
                 car_universali=new int[colonneO];
                 for(i=0; i<colonneO; i++) car_universali[i]=0;
                 car_attivi=new int[colonneO];
@@ -646,24 +641,18 @@ void calcolaSoluzione(int**matrice, int righe, int colonne){
         for(i=0; i<righe; i++){
                 n_uni=conta_uni(inclusioni, i, righe);
                 if(n_uni<2){
-                        //  cout<<"riga "<<i<<" con numero di 1 minore di 2"<<endl;
                         for(j=0; j<righe; j++) hasse[i][j]=inclusioni[i][j];
                 }
-                else{
-                        // cout<<"verifica archi per specie "<<i<<endl;
-                        for(j=0; j<righe-1; j++){
-                                if(inclusioni[i][j]==1){
-                                        for(k=j+1; k<righe; k++){
-                                                if(inclusioni[i][k]==1){
-                                                        if((inclusioni[j][k]==1)|(inclusioni[k][j]==1)){
-                                                                if(inclusioni[j][k]==1) hasse[i][k]=0;
-                                                                else hasse[i][j]=0;
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
-                }
+                else
+                        for(j=0; j<righe-1; j++)
+                                if(inclusioni[i][j]==1)
+                                        for(k=j+1; k<righe; k++)
+                                                if(inclusioni[i][k]==1)
+                                                        if((inclusioni[j][k]==1)|(inclusioni[k][j]==1))
+                                                                if (inclusioni[j][k]==1)
+                                                                        hasse[i][k]=0;
+                                                                else
+                                                                        hasse[i][j]=0;
         }
 
         trovaPercorsi(matrice, hasse, righe, colonne);
@@ -687,9 +676,9 @@ void printMatrix(int ** a, int m, int n) {
         for (i = 0; i < m; i++) {
                 for (j = 0; j < n; j++)
                         printf("%d ", a[i][j]);
-                putchar('\n');
+                cout << endl;
         }
-        putchar('\n');
+        cout << endl;
 }
 
 int calcola_componenti(int** matrice, int righe, int colonne){
@@ -1180,7 +1169,6 @@ int realizza_percorso(int** matrice, int righe, int colonne, int* percorso){
                 }
         }
         if(ammissibile==1){
-
                 return 1;
         }
         else if (ammissibile==0) {
@@ -1499,7 +1487,8 @@ void compattaIndottaMassimali(){
                 if(copia[i]==0){
                         for(j=0; j<colonneMC; j++){
                                 matriceMC[i_matrice][j]=matrice_indotta[i][j];
-                        }i_matrice++;
+                        }
+                        i_matrice++;
                 }
 
         }
@@ -1589,13 +1578,9 @@ void riduciMatrice(int** GRB, int righe, int colonne){
         //controllo se tutti i caratteri sono stati resi universali. Se non è così, richiamo l'algoritmo ricorsivamente
         int somma=0;
         for(i=0; i<colonneO; i++) somma=somma+car_universali[i];
-        if(somma==colonneO) {
-
-        }
-        else{
+        if(somma!=colonneO) {
                 riduciMatrice(GRB, righeO, colonneO);
         }
-
 }
 
 void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne){ //matrice di soli massimali
