@@ -226,14 +226,14 @@ bool ConflictGraph::red_conflict(int** m, int righe, int colonne, int i, int j) 
                 for (k = 0; k < righe; k++) {
                         if(specie_non_realizzata(m,colonne,k)){
 
-                                if ((matrice[k][i] == 0 ) & (matrice[k][j] == 0) & (comp_righe[k]==comp_colonne[i])) flag1 = 1;
-                                if ((matrice[k][i] == 0) & (matrice[k][j] == 1) & (comp_righe[k]==comp_colonne[i])) flag2 = 1;
-                                if (((matrice[k][i] == 1)) & (matrice[k][j] == 0) & (comp_righe[k]==comp_colonne[i])) flag3 = 1;
-                                if ((matrice[k][i] == 1) & (matrice[k][j] == 1) & (comp_righe[k]==comp_colonne[i])) flag4 = 1;
+                                if ((matrice[k][i] == 0 ) && (matrice[k][j] == 0) && (comp_righe[k]==comp_colonne[i])) flag1 = 1;
+                                if ((matrice[k][i] == 0) && (matrice[k][j] == 1) && (comp_righe[k]==comp_colonne[i])) flag2 = 1;
+                                if (((matrice[k][i] == 1)) && (matrice[k][j] == 0) && (comp_righe[k]==comp_colonne[i])) flag3 = 1;
+                                if ((matrice[k][i] == 1) && (matrice[k][j] == 1) && (comp_righe[k]==comp_colonne[i])) flag4 = 1;
                         }
                 }
         }
-        if (flag1 & flag2 & flag3 & flag4) return true; //sigma nero
+        if (flag1 && flag2 && flag3 && flag4) return true; //sigma nero
         return false;
 };
 
@@ -872,7 +872,7 @@ int inclusioneCaratteri(int c1, int c2, int** matrice, int righe){
         int i;
 
         for(i=0; i<righe; i++){
-                if((matrice[i][c1]==1) & (matrice[i][c2]==0)) {
+                if((matrice[i][c1]==1) && (matrice[i][c2]==0)) {
                         return 0;
                 }
         }
@@ -953,7 +953,7 @@ void indotta_cc(int componente){
                                         corrispondenza_cc[j_cc]=j; //associo alla colonna indotta l'indice della colonna originale per tenere traccia dell'etichetta
                                         //aggiorno indici matrice indotta
                                         if(j_cc!=colonne_cc) j_cc++;
-                                        if((j_cc==colonne_cc)&(i_cc<righe_cc)){
+                                        if((j_cc==colonne_cc)&&(i_cc<righe_cc)){
                                                 i_cc++;
                                                 j_cc=0;
                                         }
@@ -1017,7 +1017,7 @@ void indotta_massimali(int**matrice, int righe, int colonne, int* massimali){
                                         corrispondenzaMC[j_indotta]=corrispondenza_cc[j];
                                         //aggiorno indici matrice indotta
                                         if(j_indotta!=colonne_indotta) j_indotta++;
-                                        if((j_indotta==colonne_indotta)&(i_indotta<righe_indotta)){
+                                        if((j_indotta==colonne_indotta)&&(i_indotta<righe_indotta)){
                                                 i_indotta++;
                                                 j_indotta=0;
                                         }
@@ -1199,7 +1199,7 @@ void realizza_specie(int** Grb, int righe, int colonne, int specie, int* specie_
 
                 while(flag_realizzata==0){
                         for(i=0; i<colonne; i++){
-                                if((Grb[specie][i]==1)&(caratteri_universali[i]==0)){
+                                if((Grb[specie][i]==1)&&(caratteri_universali[i]==0)){
                                         rendi_universale(Grb, righe, colonne, i,  caratteri_universali, caratteri_attivi, specie_realizzate);  //i: carattere da rendere universale
 
                                         if(specie_realizzata(Grb,righe,colonne,specie,caratteri_universali)) {
@@ -1239,7 +1239,7 @@ void rendi_universale(int** Grb, int righe, int colonne, int i, int* caratteri_u
                 else if (Grb[j][i]==0) {
                         //verifica che la specie appartiene alla componente di cui fa parte il carattere. Se appartiene metti un arco rosso
 
-                        if ((tspecie[j]==1) & (specie_realizzate[j]==0)){
+                        if ((tspecie[j]==1) && (specie_realizzate[j]==0)){
                                 Grb[j][i]=2;    //arco rosso tra carattere e specie della componente connessa se specie non ancora realizzata
                         }
                 }
@@ -1301,7 +1301,7 @@ void aggiorna_caratteri_attivi(int** Grb, int righe, int colonne, int* caratteri
                         //se carattere connesso con archi rossi a tutte le specie della sua componente, posso spegnerlo
 
                         for(k=0; k<righe; k++){
-                                if((tspecie[k]==1) & (Grb[k][i]!=2)) flag=flag+1;
+                                if((tspecie[k]==1) && (Grb[k][i]!=2)) flag=flag+1;
                         }
                         if (flag>0){
                                 caratteri_attivi[i]=1;
@@ -1377,7 +1377,7 @@ bool specie_realizzata(int** matrice,int righe,int colonne,int specie, int* cara
         int i;
 
         for(i=0; i<colonne; i++){
-                if((matrice[specie][i]==1)&(caratteri_universali[i]==0)) {
+                if((matrice[specie][i]==1)&&(caratteri_universali[i]==0)) {
                         return false;
                 }
         }
@@ -1388,7 +1388,7 @@ bool specie_realizzata(int** matrice,int righe,int colonne,int specie, int* cara
 int included(int** matrice, int righe, int colonne, int s1, int s2){
         int i;
         for(i=0; i<colonne; i++){
-                if((matrice[s1][i]==1)&(matrice[s2][i]==0)) return 0;
+                if((matrice[s1][i]==1)&&(matrice[s2][i]==0)) return 0;
         }
         return 1;
 }
@@ -1448,11 +1448,11 @@ int conflitto(int c){
                         flag2=0;
                         flag3=0;
                         for (k = 0; k < righeO; k++) {
-                                if ((matriceO[k][i] == 1 ) & (matriceO[k][c] == 1)) flag1 = 1;
-                                if ((matriceO[k][i] == 0) & (matriceO[k][c] == 1)) flag2 = 1;
-                                if (((matriceO[k][i] == 1)) & (matriceO[k][c] == 0)) flag3 = 1;
+                                if ((matriceO[k][i] == 1 ) && (matriceO[k][c] == 1)) flag1 = 1;
+                                if ((matriceO[k][i] == 0) && (matriceO[k][c] == 1)) flag2 = 1;
+                                if (((matriceO[k][i] == 1)) && (matriceO[k][c] == 0)) flag3 = 1;
                         }
-                        if (flag1 & flag2 & flag3)  return 1;
+                        if (flag1 && flag2 && flag3)  return 1;
                 }
         }
         return 0;
@@ -1772,17 +1772,17 @@ int sottomatriceProibita(int ** a, int c1, int c2) {
         flag1 = flag2 = flag3 = 0;
 
         for (i = 0; i < righeO; i++) {
-                if ((a[i][c1] == 0 ) & (a[i][c2] == 1)) {
+                if ((a[i][c1] == 0 ) && (a[i][c2] == 1)) {
                         flag1 = 1;
                 }
-                if ((a[i][c1] == 1 ) & (a[i][c2] == 0)) {
+                if ((a[i][c1] == 1 ) && (a[i][c2] == 0)) {
                         flag2 = 1;
                 }
-                if ((a[i][c1] == 1 ) & (a[i][c2] == 1)) {
+                if ((a[i][c1] == 1 ) && (a[i][c2] == 1)) {
                         flag3 = 1;
                 }
         }
-        if (flag1 & flag2 & flag3) return 1; //esiste sottomatrice proibita
+        if (flag1 && flag2 && flag3) return 1; //esiste sottomatrice proibita
         else
                 return 0;  //non esiste sottomatrice proibita
 }
