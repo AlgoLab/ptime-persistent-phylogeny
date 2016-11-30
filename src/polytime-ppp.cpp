@@ -681,12 +681,13 @@ void printMatrix(int ** a, int m, int n) {
         cout << endl;
 }
 
+/**
+   computes the connected components of the red-black graph associated to the input matrix.
+   comp_colonne and comp_righe store the ID of the component to which a species/character belongs.
+*/
 int calcola_componenti(int** matrice, int righe, int colonne){
-
         int i,j, start;
         int contatore_componente=0;
-        int* singolettiRiga;
-        int* singolettiColonna;
 
         comp_colonne = new int [colonne];
         for(i=0; i<colonne; i++)
@@ -695,63 +696,77 @@ int calcola_componenti(int** matrice, int righe, int colonne){
         for(i=0; i<righe; i++)
                 comp_righe[i]=-1;
 
-        singolettiColonna = new int [colonne];
+        int singolettiColonna[colonne];
         for(i=0; i<colonne; i++)
                 singolettiColonna[i]=0;
-        singolettiRiga = new int [righe];
+        int singolettiRiga[righe];
         for(i=0; i<righe; i++)
                 singolettiRiga[i]=0;
 
-        for(i=0; i<colonne; i++){
-                if(colonnaSingoletto(matrice, righe, i)) {
-                        singolettiColonna[i]=1;
-                        comp_colonne[i]=-2;  //indico che è un singoletto
+        bool checked[righe+colonne+1];
+        bool reached[righe+colonne+1];
+        for(i=0; i<righe+colonne; i++) {
+                checked[i] = false;
+                reached[i] = false;
+        }
+        checked[righe+colonne] = true; // sentinel
+        reached[righe+colonne] = true; // sentinel
+        int num_connected_components = 1;
+        for(int component_id=0; ; component_id++, num_connected_components++) {
+                /* find the first vertex of the new connected component */
+                int current=righe+colonne;
+                for (; checked[current]; current++) {}
+                reached[current] = true;
+
+
+
+                do {
+                        checked[current] = true;
+
+                        if (current < righe)
+                                for(j=0; j<colonne; j++)
+                                        if (matrice[current][j] == 1 && ! reached[righe+j])
+                                                reached[righe+j] = true;
+                                        else
+                                                for(i=0; i<righe; i++)
+                                                        if (matrice[i][current] == 1 && !reached[i])
+                                                                reached[i] = true;
+                        for (current=0; current < righe+colonne; current++)
+                                if (reached[current] && !checked[current])
+                                        break;
+                } while (current < righe+colonne);
+
+                int source_new_component = 0;
+                for (current=0; current < righe; current++) {
+                        if (checked[current] && comp_righe[current] < 0)
+                                comp_righe[current] = component_id;
+                        if (!checked[current])
+                                source_new_component = current;
                 }
+                for (current=0; current < colonne; current++) {
+                        if (checked[righe+current] && comp_righe[current] < 0)
+                                comp_righe[current] = component_id;
+                        if (!checked[current])
+                                source_new_component = current;
+                }
+                current = source_new_component;
         }
 
-        for(i=0; i<righe; i++){
-                if(rigaSingoletto(matrice, colonne, i)) {
-                        singolettiRiga[i]=1;
-                        comp_righe[i]=-2;
-                }
+        for(i=0; i<colonne; i++) {
+                if (comp_colonne[i] > num_connected_components)
+                        num_connected_components = comp_colonne[i];
+                if(colonnaSingoletto(matrice, righe, i))
+                        comp_colonne[i]=-2;  // singleton
         }
-
-        //verifico se sono tutti singoletti
-        if(soloSingoletti(comp_colonne, colonne)) return -2;
-
-        //determino prima colonna che non è un singoletto e da lì parto a calcolare le componenti
-        for(i=0; i<colonne; i++){
-                if(comp_colonne[i]!=-2) {
-                        start=i;
-                        break;
-                }
+        for(i=0; i<righe; i++) {
+                if (comp_righe[i] > num_connected_components)
+                        num_connected_components = comp_righe[i];
+                if(rigaSingoletto(matrice, colonne, i))
+                        comp_righe[i]=-2;  // singleton
         }
-
-        comp_colonne[start]=0;
-        i=start;
-        //calcola componente connessa al primo carattere
-        componenti_colonna(i, matrice, righe, colonne);
-
-        // controllo se tutti i caratteri appartengono già ad una componente
-        for (i=0; i<colonne; i++){
-                if (comp_colonne[i] == -1) { // questo carattere non appartiene a nessuna componente
-                        comp_colonne[i]= contatore_componente+1;
-                        contatore_componente++;
-                        //calcolo componente connessa a questo carattere
-                        componenti_colonna(i, matrice, righe, colonne);
-                }
-        }
-
-        //riscrivo gli 1 e 2 nella matrice iniziale
-        for (i=0; i<righe; i++){
-                for (j=0; j<colonne; j++){
-                        if (matrice[i][j]==3) matrice[i][j]=1;
-                        if (matrice[i][j]==4) matrice[i][j]=2;
-                }
-        }
-
-        componenti_matrice=contatore_componente;
-        return componenti_matrice;
+        num_connected_components++;
+        /* If there are only singletons, return -2 */
+        return (num_connected_components >= righe + colonne) ? -2 : num_connected_components;
 }
 
 bool soloSingoletti(int* componenti, int colonne){
@@ -1541,13 +1556,17 @@ int trovaSuccessivo(int** matrice, int** hasse, int righe, int colonne, int nodo
                 }
         }
 }
+
 //prende una matrice, ne calcola le c.c. e su ogni componente richiama la procedura per risolvere la singola componente
 void riduciMatrice(int** GRB, int righe, int colonne){
         int n_componenti, i, j,ii;
         int cont;
         int* universali;
-        printMatrix(GRB, righeO, colonneO);
-        // calcola le componenti connesse del grafo rosso nero
+
+        // DEBUG
+        // printMatrix(GRB, righeO, colonneO);
+
+// calcola le componenti connesse del grafo rosso nero
         n_componenti=calcola_componenti(GRB,righe,colonne);
 
         // per ogni componente GRB connessa
