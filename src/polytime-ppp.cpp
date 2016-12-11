@@ -9,7 +9,7 @@
 #include<stdio.h>
 #include <iostream>
 #include <fstream>
-#include <time.h>
+#include <assert.h>
 
 using namespace std;
 
@@ -63,130 +63,130 @@ int* corrispondenzaMC;
 class ConflictGraph {
 public:
 
-        ConflictGraph (int** m, int righe, int colonne);
+ConflictGraph (int** m, int righe, int colonne);
 
-        bool is_a_graph_with_only_singletons ();
-        bool is_a_simple_graph ();
-        bool is_connected();
-        bool is_a_singleton (int car);
-        int* compute_connected_component (int i);
-        int print_connected_component (int* cc);
-        int size_connected_component (int* cc);
+bool is_a_graph_with_only_singletons ();
+bool is_a_simple_graph ();
+bool is_connected();
+bool is_a_singleton (int car);
+int* compute_connected_component (int i);
+int print_connected_component (int* cc);
+int size_connected_component (int* cc);
 
-        bool red_conflict (int** m, int righe, int colonne, int i, int j);      // method that checks if character i and character j are in red conflict
-        bool specie_non_realizzata(int**m, int colonne, int k);
-        bool carattere_connesso(int** m, int righe, int k);
-        // Value extraction methods - inlined - they allow the value of _vertex to be private
-        int get_vertex () const { return _vertex; };
-        int get_species () const { return _species; };
+bool red_conflict (int** m, int righe, int colonne, int i, int j);      // method that checks if character i and character j are in red conflict
+bool specie_non_realizzata(int**m, int colonne, int k);
+bool carattere_connesso(int** m, int righe, int k);
+// Value extraction methods - inlined - they allow the value of _vertex to be private
+int get_vertex () const { return _vertex; };
+int get_species () const { return _species; };
 
-        int insert_edge (int i, int j);
+int insert_edge (int i, int j);
 
-        int compute_components();
-        int scorri_colonna(int colonna); //per calcolare le componenti del grafo
+int compute_components();
+int scorri_colonna(int colonna); //per calcolare le componenti del grafo
 
-        int print_graph ();
-        int reset_status ();
+int print_graph ();
+int reset_status ();
 
 
-        int** cgraph;                   // another representation of the conflict graph in which the arcs are indexed
-        int edges;                              // number of edges in the graph
+int** cgraph;                   // another representation of the conflict graph in which the arcs are indexed
+int edges;                              // number of edges in the graph
 
-        int* species_sequence;          // S_q, i.e., le specie in S* ordinate a seconda del numero di 1
+int* species_sequence;          // S_q, i.e., le specie in S* ordinate a seconda del numero di 1
 
 
 private:
 
-        struct node {
-                int value; node* next;
-                node(int x, node* t) {value = x; next = t; }
-        };
+struct node {
+int value; node* next;
+node(int x, node* t) {value = x; next = t; }
+};
 
-        typedef node* link;
-        link* adj;              // the array containing the adjunct lists
-        int _vertex;    // number of vertexes in the graph, it corresponds to the number of characters
-        int _species;
-        int* mapping;
-        int* status;                    // an array that records the status of the visits to ???? nodes or verteces???che contiene lo status delle visite dei vari nodi
+typedef node* link;
+link* adj;              // the array containing the adjunct lists
+int _vertex;    // number of vertexes in the graph, it corresponds to the number of characters
+int _species;
+int* mapping;
+int* status;                    // an array that records the status of the visits to ???? nodes or verteces???che contiene lo status delle visite dei vari nodi
 };
 
 // Constructor
 // Construct the conflict graph from matrix m, which could have some rows removed
 ConflictGraph::ConflictGraph (int** m, int righe, int colonne) {
-        int i, j,x;
-        link t;
-        _vertex = colonne;
-        _species = righe;
+int i, j,x;
+link t;
+_vertex = colonne;
+_species = righe;
 
-        cgraph = new int* [get_vertex()];
-        for (i = 0; i < get_vertex(); i++){
-                cgraph[i] = new int[get_vertex()];
-        }
-        // initialize the graph with no arcs => all 0s
-        for (i = 0; i < get_vertex(); i++) {
-                for (j = 0; j < get_vertex(); j++) {
-                        cgraph[i][j] = 0;
-                }
-        }
-        edges = 0;                      // initially there are no edges in the graph
+cgraph = new int* [get_vertex()];
+for (i = 0; i < get_vertex(); i++){
+cgraph[i] = new int[get_vertex()];
+}
+// initialize the graph with no arcs => all 0s
+for (i = 0; i < get_vertex(); i++) {
+for (j = 0; j < get_vertex(); j++) {
+cgraph[i][j] = 0;
+}
+}
+edges = 0;                      // initially there are no edges in the graph
 
-        // create the array containing the adjunct lists representing the conflict graph
-        // the lists are initially empty
-        adj = new link [get_vertex()];
-        for (i = 0; i < get_vertex(); i++) {
-                adj[i] = NULL;
-        }
+// create the array containing the adjunct lists representing the conflict graph
+// the lists are initially empty
+adj = new link [get_vertex()];
+for (i = 0; i < get_vertex(); i++) {
+adj[i] = NULL;
+}
 
 
-        for (i = 0; i < get_vertex(); i++) {
-                if(carattere_connesso(m, righe, i)){
-                        for (j = i + 1; j < get_vertex(); j++) {
-                                if(carattere_connesso(m, righe, j)){
-                                        if (red_conflict(m, righe, colonne, i, j) == true) {
-                                                insert_edge(i, j);                                              // add the arc in the adjunct list
-                                                cgraph[i][j] = cgraph[j][i] = ++edges;  // add the arc in the adjunct matrix
-                                        }
-                                }
-                        }
-                }
-        }
+for (i = 0; i < get_vertex(); i++) {
+if(carattere_connesso(m, righe, i)){
+for (j = i + 1; j < get_vertex(); j++) {
+if(carattere_connesso(m, righe, j)){
+if (red_conflict(m, righe, colonne, i, j) == true) {
+insert_edge(i, j);                                              // add the arc in the adjunct list
+cgraph[i][j] = cgraph[j][i] = ++edges;  // add the arc in the adjunct matrix
+}
+}
+}
+}
+}
 
-        numero_conflitti=edges;
-        if (numero_conflitti>0) gc_vuoto=0;
-        else gc_vuoto=1;
+numero_conflitti=edges;
+if (numero_conflitti>0) gc_vuoto=0;
+else gc_vuoto=1;
 
-        // set all the vertexes as NOTVISITED
-        // serve per poi usare la funzione di visita/lettura del grafo
-        status = new int [_vertex];
-        for (i = 0; i < _vertex; i++) {
-                status[i] = NOTVISITED;
-        }
+// set all the vertexes as NOTVISITED
+// serve per poi usare la funzione di visita/lettura del grafo
+status = new int [_vertex];
+for (i = 0; i < _vertex; i++) {
+status[i] = NOTVISITED;
+}
 
-        mapping = new int [get_vertex()];
-        for (i = 0; i < get_vertex(); i++) {
-                mapping[i] = i;
-        }
+mapping = new int [get_vertex()];
+for (i = 0; i < get_vertex(); i++) {
+mapping[i] = i;
+}
 
-        archi_gabry=new int*[edges];
-        for(i=0; i<edges; i++) archi_gabry[i]=new int[2];
+archi_gabry=new int*[edges];
+for(i=0; i<edges; i++) archi_gabry[i]=new int[2];
 
-        for(i=0; i<edges;i++){
-                for(j=0; j<2; j++)
-                        archi_gabry[i][j]=-1;
-        }
-        x=0;
+for(i=0; i<edges;i++){
+for(j=0; j<2; j++)
+        archi_gabry[i][j]=-1;
+}
+x=0;
 
-        for (i = 0; i < get_vertex(); i++) {
-                t = adj[i];
-                while (t != NULL) {
-                        if (i < t->value) {
-                                archi_gabry[x][0]= i;
-                                archi_gabry[x][1]=t->value;
-                                x++;
-                        }
-                        t = t->next;
-                }
-        }
+for (i = 0; i < get_vertex(); i++) {
+t = adj[i];
+while (t != NULL) {
+if (i < t->value) {
+archi_gabry[x][0]= i;
+archi_gabry[x][1]=t->value;
+x++;
+}
+t = t->next;
+}
+}
 }
 
 // A method to insert a new arc in the graph between the vertex of character i and the vertex of character j
@@ -223,10 +223,10 @@ bool ConflictGraph::red_conflict(int** m, int righe, int colonne, int i, int j) 
                 for (k = 0; k < righe; k++) {
                         if(specie_non_realizzata(m,colonne,k)){
 
-                                if ((matrice[k][i] == 0 ) && (matrice[k][j] == 0) && (comp_righe[k]==comp_colonne[i])) flag1 = 1;
-                                if ((matrice[k][i] == 0) && (matrice[k][j] == 1) && (comp_righe[k]==comp_colonne[i])) flag2 = 1;
-                                if (((matrice[k][i] == 1)) && (matrice[k][j] == 0) && (comp_righe[k]==comp_colonne[i])) flag3 = 1;
-                                if ((matrice[k][i] == 1) && (matrice[k][j] == 1) && (comp_righe[k]==comp_colonne[i])) flag4 = 1;
+                                if ((m[k][i] == 0) && (m[k][j] == 0) && (comp_righe[k]==comp_colonne[i])) flag1 = 1;
+                                if ((m[k][i] == 0) && (m[k][j] == 1) && (comp_righe[k]==comp_colonne[i])) flag2 = 1;
+                                if ((m[k][i] == 1) && (m[k][j] == 0) && (comp_righe[k]==comp_colonne[i])) flag3 = 1;
+                                if ((m[k][i] == 1) && (m[k][j] == 1) && (comp_righe[k]==comp_colonne[i])) flag4 = 1;
                         }
                 }
         }
@@ -673,11 +673,12 @@ void printMatrix(int ** a, int m, int n) {
    computes the connected components of the red-black graph associated to the input matrix.
    comp_colonne and comp_righe store the ID of the component to which a species/character belongs.
 
-   Retuq
 */
 int calcola_componenti(int** matrice, int righe, int colonne){
         int i,j, start;
-        cout<<"calcola componenti--------------------"<<endl;
+        assert(righe > 0);
+        assert(colonne > 0);
+        cout<<"calcola componenti--------------------" << righe << "--" << colonne <<endl;
         for(i=0; i<righe; i++){
                 for(j=0; j<colonne; j++){
                         cout<<matrice[i][j];
@@ -694,18 +695,57 @@ int calcola_componenti(int** matrice, int righe, int colonne){
 
         bool checked[righe+colonne+1];
         bool reached[righe+colonne+1];
-        for(i=0; i<righe+colonne; i++) {
-                checked[i] = false;
-                reached[i] = false;
-        }
         checked[righe+colonne] = true; // sentinel
         reached[righe+colonne] = true; // sentinel
-        int num_connected_components = 1;
-        for(int component_id=0; ; component_id++, num_connected_components++) {
+        int num_connected_components = -2;
+
+//        Consider only nontrivial connected components
+        for(i=0; i<colonne; i++)
+                if(colonnaSingoletto(matrice, righe, i)) {
+                        comp_colonne[i]=-2;
+                        checked[righe+i] = true;
+                        reached[righe+i] = true;
+                } else {
+                        comp_colonne[i] = -1;
+                        checked[righe+i] = false;
+                        reached[righe+i] = false;
+                }
+
+        for(i=0; i<righe; i++)
+                if(rigaSingoletto(matrice, colonne, i)) {
+                        comp_righe[i]=-2;
+                        checked[i] = true;
+                        reached[i] = true;
+                } else {
+                        comp_colonne[i] = -1;
+                        checked[i] = false;
+                        reached[i] = false;
+                }
+        cout << "raw COMP colonne" << endl;
+        for(i=0; i<colonne; i++)
+                cout<<comp_colonne[i]<<" ";
+        cout<<endl;
+        cout << "raw COMP righe" << endl;
+        for(i=0; i<righe; i++)
+                cout<<comp_righe[i]<<" ";
+        cout<<endl;
+        cout << "reached:";
+        for(i=0; i<righe+colonne; i++)
+                cout<<reached[i]<<" ";
+        cout<<endl;
+        cout << "checked:";
+        for(i=0; i<righe+colonne; i++)
+                cout<<checked[i]<<" ";
+        cout<<endl;
+        bool all_singletons = true;
+        //        Compute connected components
+        for(int current = 0, component_id=0; current < righe + colonne ; component_id++) {
                 /* find the first vertex of the new connected component */
-                int current = 0;
-                for (; checked[current]; current++) {}
-                reached[current] = true;
+                for (current = 0; checked[current]; current++) {}
+                cout << "current:" << current << all_singletons << endl;
+                if (current < righe + colonne)
+                        all_singletons = false;
+                reached[current ] = true;
 
                 do {
                         checked[current] = true;
@@ -729,55 +769,33 @@ int calcola_componenti(int** matrice, int righe, int colonne){
 
                 int source_new_component = righe+colonne;
                 for (current=0; current < righe; current++) {
-                        if (checked[current] && comp_righe[current] < 0)
+                        if (checked[current] && comp_righe[current] == -1)
                                 comp_righe[current] = component_id;
                         if (!checked[current])
                                 source_new_component = current;
                 }
                 for (current=0; current < colonne; current++) {
-                        if (checked[righe+current] && comp_colonne[current] < 0)
+                        if (checked[righe+current] && comp_colonne[current] == -1)
                                 comp_colonne[current] = component_id;
-                        if (!checked[current])
+                        if (!checked[righe+current])
                                 source_new_component = current;
                 }
-                // cout << "Final  Reached and checked" << endl;
-                // cout << "current=" << current << "->" << source_new_component << endl;
-                // for(i=0; i<righe + colonne; i++) cout<< reached[i];
-                // cout<<endl;
-                // for(i=0; i<righe + colonne; i++) cout<< checked[i];
-                // cout<<endl;
                 current = source_new_component;
-                if (current >= righe + colonne)
-                        break;
+                num_connected_components = component_id;
         }
-
-        for(i=0; i<colonne; i++)
-                if(colonnaSingoletto(matrice, righe, i))
-                        comp_colonne[i]=-2;  // singleton
-
-        for(i=0; i<righe; i++)
-                if(rigaSingoletto(matrice, colonne, i))
-                        comp_righe[i]=-2;  // singleton
 
         cout << "COMP colonne" << endl;
-        int num_nontrivial_connected_components = num_connected_components;
-        for(i=0; i<colonne; i++) {
+        for(i=0; i<colonne; i++)
                 cout<<comp_colonne[i]<<" ";
-                if (comp_colonne[i] == -2)
-                        num_nontrivial_connected_components--;
-        }
         cout<<endl;
         cout << "COMP righe" << endl;
-        for(i=0; i<righe; i++)  {
+        for(i=0; i<righe; i++)
                 cout<<comp_righe[i]<<" ";
-                if (comp_righe[i] == -2)
-                        num_nontrivial_connected_components--;
-        }
         cout<<endl;
-        cout << num_nontrivial_connected_components << endl;
+        cout << num_connected_components << all_singletons << endl;
 
 /* If there are only singletons, return -2 */
-        return (num_nontrivial_connected_components == 0) ? -2 : num_nontrivial_connected_components - 1;
+        return (all_singletons) ? -2 : num_connected_components;
 }
 
 bool soloSingoletti(int* componenti, int colonne){
@@ -1107,9 +1125,6 @@ void aggiungi_nodo(int s, int righe){
 int realizza_percorso(int** matrice, int righe, int colonne, int* percorso){
         int i,j, e,  cont_neri, cont_specie, cont, n_componenti;
         int** grb;
-        int* c_universali;
-        int* s_realizzate;
-        int* c_attivi;
         int ammissibile;
         grb = (int **)calloc(righe, sizeof(int *));
         for (i = 0; i < righe; i++){
@@ -1123,7 +1138,7 @@ int realizza_percorso(int** matrice, int righe, int colonne, int* percorso){
                 }
         }
 
-        c_universali=new int[colonne];
+        int c_universali[colonne];
         for(i=0; i<colonne; i++){
                 cont_neri=0;
                 for(j=0; j<righe; j++){
@@ -1135,7 +1150,7 @@ int realizza_percorso(int** matrice, int righe, int colonne, int* percorso){
                 if(cont_neri==0) c_universali[i]=1;
         }
         //specie realizzate: nessun arco entrante.
-        s_realizzate=new int[righe];
+        int s_realizzate[righe];
         for(i=0; i<righe; i++){
                 cont_specie=0;
                 for(j=0; j<colonne; j++){
@@ -1148,7 +1163,7 @@ int realizza_percorso(int** matrice, int righe, int colonne, int* percorso){
         }
 
         //caratteri attivi: attivo se reso universale e NON connesso con archi rossi a tutte le specie della sua componente
-        c_attivi=new int[colonne];
+        int c_attivi[colonne];
         for(i=0; i<colonne; i++) c_attivi[i]=0;
         for(i=0; i<colonne; i++){
                 if (c_universali[i]==1){
@@ -1188,6 +1203,7 @@ int realizza_percorso(int** matrice, int righe, int colonne, int* percorso){
                         }
                 }
         }
+
         if(ammissibile==1){
                 return 1;
         }
@@ -1563,18 +1579,24 @@ void riduciMatrice(int** GRB, int righe, int colonne){
         int cont;
 
         // DEBUG
-        // printMatrix(GRB, righeO, colonneO);
+        cout << "riduciMatrice" << endl;
+        printMatrix(GRB, righe, colonne);
 
 // calcola le componenti connesse del grafo rosso nero
-        cout << "RM1 " ;
+        cout << "Riduci " << righe << "-" << colonne ;
         n_componenti=calcola_componenti(GRB,righe,colonne);
         cout << "RM2: " <<  n_componenti << endl;
 
         // per ogni componente GRB connessa
         for(int contatore_componente=0; contatore_componente<=n_componenti; contatore_componente++){
                 // calcola matrice indotta dalla componente connessa di Grb
-                cout << "Componente connessa" << endl;
+                cout << "Componente connessa:" << contatore_componente << endl;
                 indotta_cc(contatore_componente);
+                cout << "Singola componente" << endl;
+                printMatrix(GRB, righe, colonne);
+                cout << "-----------------------------" << endl;
+                printMatrix(matrice_cc, righe_cc, colonne_cc);
+
                 int universali[colonne_cc];
                 for (i = 0; i < colonne_cc; i++)
                         universali[i] = 0;
