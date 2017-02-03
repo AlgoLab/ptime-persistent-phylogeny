@@ -39,8 +39,6 @@ int* comp_colonne; //componenti matrice di partenza
 int* comp_righe;   //componenti matrice di partenza
 char* mapping_chars;
 FILE* file;
-ofstream outsi;
-ofstream outno;
 int componenti_matrice;
 int contatore_componente;
 int* massimali;
@@ -61,14 +59,6 @@ int* corrispondenzaMC;
 
 #define         NOTVISITED              0
 #define         VISITED                 1
-
-/*
-  the red-black graph is represented as a matrix
-*/
-class RedBlackGraph {
-public:
-        RedBlackGraph (int** matrix, int num_rows, int num_cols);
-};
 
 
 class ConflictGraph {
@@ -491,7 +481,7 @@ void percorsiSinkEN();
 void percorsiENSorgenti();
 void copiaSinkEn(int si, int en);
 void copiaEnSorgente(int en, int so);
-int realizza_percorso();
+int realizza_percorso(int** matrice, int righe, int colonne, int* percorso);
 int* riordina_percorso(int* percorso, int righe);
 void zigzagPath(int righe);
 void percorriZigzag();
@@ -524,6 +514,8 @@ int specieMatrice(int specie, int** matrice, int colonne, int* componentiRiga);
 int uguali(int** matrice, int righe, int c1, int c2);
 int specieUguali(int* s1, int* s2, int colonne);
 int universale(int carattere, int* componentiRiga);
+int VerificaSafeInGRB(int** matrice, int righe, int colonne, int specie);
+int sigmaRossi(int** matrice, int righe, int colonne);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -816,20 +808,13 @@ int calcola_componenti(int** matrice, int righe, int colonne){
         int i,j;
         assert(righe > 0);
         assert(colonne > 0);
-        int* singolettiRiga;
-        int* singolettiColonna;
-        cout<<"calcola componenti--------------------" << righe << "--" << colonne <<endl;
-        for(i=0; i<righe; i++){
-                for(j=0; j<colonne; j++){
-                        cout<<matrice[i][j];
-                }
-                cout<<endl;
-        }
 
         comp_colonne = new int [colonne];
+        for(i=0; i<colonne; i++)
+                comp_colonne[i]=-1;
         comp_righe = new int [righe];
-        singolettiColonna = new int [colonne];
-        singolettiRiga = new int [righe];
+        for(i=0; i<righe; i++)
+                comp_righe[i]=-1;
 
         bool checked[righe+colonne+1];
         bool reached[righe+colonne+1];
@@ -840,6 +825,7 @@ int calcola_componenti(int** matrice, int righe, int colonne){
 //        Consider only nontrivial connected components
         for(i=0; i<colonne; i++)
                 if(colonnaSingoletto(matrice, righe, i)) {
+                        // cout<<"colonna "<<i<<"singoletto"<<endl;
                         comp_colonne[i]=-2;
                         checked[righe+i] = true;
                         reached[righe+i] = true;
@@ -997,15 +983,30 @@ int incluso(int c, int* caratteri_universali, int righe, int* specie_realizzate,
         incluso=0; //ipotizzo inizialmente non sia incluso
         // cout<<"verifico se carattere "<<c<<" incluso in altri caratteri"<<endl;
         for(i=0; i<colonne; i++){
+                // if((i!=c)&(caratteri_universali[i]==0)){
                 if((i!=c)){
                         if(caratteri_universali[i]==0){
-                                incluso=incluso + inclusioneCaratteri(c,i, matrice, righe);
+                                //     cout<<"confronto con carattere "<<i<<endl;
+                                if(uguali(matrice, righe, i, c)) {
+                                        //       cout<<"i due caratteri sono uguali --> non incluso"<<endl;
+                                        incluso=incluso+0;
+                                }
+                                else incluso=incluso + inclusioneCaratteri(c,i, matrice, righe);
                         }
                 }
         }
         // cout<<"numero inclusioni di carattere "<<c<<": "<<incluso<<endl;
         if (incluso==0) return 0;
         else return 1;
+}
+
+//verifica se due colonne sono uguali
+int uguali(int** matrice, int righe, int c1, int c2){
+        int i;
+        for(i=0; i<righe; i++){
+                if (matrice[i][c1]!=matrice[i][c2]) return 0;
+        }
+        return 1;
 }
 
 //verifico se carattere c1 incluso in carattere c2
@@ -1049,6 +1050,8 @@ void indotta_cc(int componente){
         int* caratteri;
         int* specie;
         int i,j;
+        int righe_indotta=0;
+        int colonne_indotta=0;
         int i_cc, j_cc;
 
         righe_cc=0;
@@ -1247,6 +1250,7 @@ int realizza_percorso(int** matrice, int righe, int colonne, int* percorso){
         int* s_realizzate;
         int* c_attivi;
         int ammissibile;
+        int* soluzione_massimali;
 //cout<<"dentro la realizzazione del percorso"<<endl;
 //cout<<"matrice:"<<endl;
 //        printMatrix(matrice, righe, colonne);
@@ -1307,6 +1311,7 @@ int realizza_percorso(int** matrice, int righe, int colonne, int* percorso){
                 //per ogni nodo del percorso, se nodo !=-1
                 if(percorso[i]!=-1){
                         //realizza la specie
+                        cout<<"realizzo la specie "<<percorso[i]<<endl;
                         //realizza_specie(matrice,righe,colonne,percorso[i],s_realizzate, c_universali, c_attivi, grb, soluzione_massimali);
                         realizza_specie(grb,righe,colonne,percorso[i],s_realizzate, c_universali, c_attivi);
                 }
@@ -1320,7 +1325,7 @@ int realizza_percorso(int** matrice, int righe, int colonne, int* percorso){
 
         ConflictGraph cg (grb,righe,colonne);
         //  cout<<"qui"<<endl;
-        cg.print_graph();
+        // cg.print_graph();
 
         //per ogni coflitto, verifico se la coppia di caratteri appartiene al sink. In tal caso, sink non ammissibile
         for(e=0; e<cg.edges; e++){
@@ -1406,6 +1411,12 @@ void rendi_universale(int** Grb, int righe, int colonne, int i, int* caratteri_u
 
                         if ((tspecie[j]==1) && (specie_realizzate[j]==0)){
                                 Grb[j][i]=2;    //arco rosso tra carattere e specie della componente connessa se specie non ancora realizzata
+                                // rossi[j][i]=1;
+                                if(flag==1){
+                                        // cout<<"estendo"<<endl;
+                                        estesa[j][2*i]=1;
+                                        estesa[j][2*i+1]=1;
+                                }
                         }
                 }
 
@@ -1788,7 +1799,7 @@ void riduciMatrice(){
         int cont;
         int* universali;
         int* componentiRighe;
-//cout<<"GRB in riduci matrice"<<endl;
+        cout<<"GRB in riduci matrice"<<endl;
         printMatrix(GRB, righeO, colonneO);
         // calcola le componenti connesse del grafo rosso nero
 
@@ -1841,7 +1852,7 @@ void riduciMatrice(){
         compattaIndottaMassimali();
         cout<<".....matrice indotta da massimali"<<endl;
         printMatrix(matriceMC, righeMC, colonneMC);
-        //   cout<<"..............."<<endl;
+        cout<<"..............."<<endl;
         calcolaSoluzione(matriceMC, righeMC, colonneMC, componentiRighe);
 
 
@@ -1858,6 +1869,235 @@ void riduciMatrice(){
         }
 
 }
+/*
+  void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* componentiRiga){ //matrice di soli massimali
+  int** percorsi;
+  int singolettiSafe[righe];
+  int numeroPercorso;
+  int percorsoOrdinato[righe];
+  int i,j,k, nSo, nSi, ii, jj;
+  int g;
+  //  int* c_universali;
+  //  int* s_realizzate;
+  //  int* c_attivi;
+  //  int* soluzione_massimali;
+  int cont_neri, cont_specie, cont;
+  int stop;
+  int flagSingoletti, somma, flagSpecie;
+  cout<<"TROVA PERCORSI"<<endl;
+  printMatrix(matrice,righe,colonne);
+  nSo=0;
+  nSi=0;
+
+
+  /*     cout<<"componenti righe dentro trovaPercorsi: ";
+  for(i=0; i<righeO; i++) cout<<componentiRiga[i];
+  cout<<endl;*/
+/******
+       sorgenti=new int[righe];
+       sorgenti_potenziali=new int[righe];
+       sink=new int[righe];
+       in_deg=new int[righe];
+       specieRealizzate=new int[righe];
+       for(i=0; i<righe; i++) sorgenti_potenziali[i]=1; //inizialmente suppongo che qualsiasi nodo possa essere sorgente
+       for(i=0; i<righe; i++) specieRealizzate[i]=0;
+//SISTEMARE CONDIZIONE ITERAZIONE: CONTROLLO SU GC MASSIMALI
+//while((flag_hasse_vuoto==0)&(flag_ammissibile==1)){
+// cout<<"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
+// printMatrix(matrice,righe,colonne);
+// cout<<"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
+for(i=0; i<righe; i++){
+sorgenti[i]=trova_sorgenti(i,righe);
+sink[i]=trova_sink(i,righe);
+in_deg[i]=inDeg(i,righe);
+}
+for(i=0; i<righe; i++){
+if (sorgenti[i]==1){
+//   cout<<i<<" sorgente"<<endl;
+nSo++;
+}
+}
+
+for(i=0; i<righe; i++){
+if (sink[i]==1) {
+//  cout<<i<<" sink"<<endl;
+nSi++;
+}
+}
+
+//inizializzo matrice percorsi: al max numero percorsi= numero sources*numero sink
+percorsi=new int*[nSo*nSi];
+for(i=0; i<(nSo*nSi); i++){
+percorsi[i]=new int [righe]; //ogni percorso è al massimo la lista di tutte le specie della matrice
+}
+for(i=0; i<nSo*nSi; i++){
+for(j=0; j<righe; j++)
+percorsi[i][j]=-1;
+}
+
+numeroPercorso=0;
+
+for(i=0; i<righe; i++){
+if(sorgenti[i]==1){
+for(j=0; j<righe; j++){
+if(sink[j]==1){
+if(included(matrice, righe, colonne, i,j)){
+// cout<<"costruisco percorso tra "<<i<<j<<endl;
+percorsi[numeroPercorso] = costruiscoPercorso(matrice, hasse, righe, colonne, i, j);
+numeroPercorso++;
+}
+}
+}
+}
+}
+
+//determino se Hasse di soli singoletti
+flagSingoletti=0;
+somma=0;
+for(i=0; i<righe; i++){
+for(j=0; j<righe; j++)
+somma=somma+hasse[i][j];
+}
+if(somma==0){
+flagSingoletti=1;
+cout<<"Hasse di soli singoletti!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+}
+
+
+//determino quali percorsi sono safe
+int safe[nSo*nSi];
+int percorsoOrdinato[righe];
+for(i=0; i<righe; i++)percorsoOrdinato[i]=-1;
+for(i=0; i<nSo*nSi; i++) safe[i]=-1;
+stop=0;
+for(i=0; i<nSo*nSi; i++){
+cout<<"Percorso numero "<<i<<endl;
+
+if(stop==0){    //se non ho ancora trovato un percorso valido
+if(percorsi[i][0]!=-1){
+// for(j=0; j<righe;j++)cout<<percorsi[i][j];
+// cout<<endl;
+//cout<<"..................determino se percorso "<<i<<" sia safe"<<endl;
+riordina_percorso(percorsoOrdinato,percorsi[i], righe); //inverto ordine dei nodi
+safe[i]=realizza_percorso(matrice, righe, colonne, percorsoOrdinato);
+// cout<<"safe[i].......................: "<<safe[i]<<endl;
+if(safe[i]==1){
+if(flagSingoletti==0){
+stop=1;
+k=determinaIndice(soluzione);
+//   cout<<"Indice in cui copiare soluzione: "<<k<<endl;
+//copio caratteri, in base alla tabella di associazione originale-indotto
+copiaSoluzione(soluzione,k,percorsi[i][0], matrice, colonne);
+/*   cout<<"soluzione: ";
+for(c=0; c<colonneO; c++) cout<<soluzione[c]<<" ";
+cout<<endl;*/
+/******
+ //3- realizzo i caratteri della sorgente nel GRB
+ for(ii=0; ii<colonneO; ii++){
+ cont_neri=0;
+ for(jj=0; jj<righeO; jj++){
+ if(GRB[jj][ii]==1) {
+ cont_neri++;
+ }
+ }
+
+ if(cont_neri>0) car_universali[ii]=0;
+ if(cont_neri==0) car_universali[ii]=1;
+ }
+
+ for(ii=0; ii<righeO; ii++){
+ cont_specie=0;
+ for(jj=0; jj<colonneO; jj++){
+ if(GRB[ii][jj]!=0) {
+ cont_specie++;
+ }
+ }
+ if(cont_specie!=0) specie_realizzate[ii]=0;
+ if(cont_specie==0) specie_realizzate[ii]=1;
+ }
+ for(ii=0; ii<colonneO; ii++){
+ if (car_universali[ii]==1){
+ cont=0;
+ for(jj=0; jj<righeO; jj++){
+ if(GRB[jj][ii]==2) cont++;
+ }
+ if(cont==righeO) car_attivi[ii]=0;
+ if(cont<righeO) car_attivi[ii]=1;
+ }
+
+ }
+ // realizza_specie(GRB,righeO,colonneO,percorsi[i][0],specie_realizzate, car_universali, car_attivi);
+ aggiornaGRB(k,specie_realizzate, car_universali, car_attivi);
+ }
+
+ //nel caso di singoletti
+ if(flagSingoletti==1){
+ cout<<"percorso "<<i<<" di soli singoletti"<<endl;
+ // cout<<"numero righe:"<<righe<<endl;
+
+ //se il singoletto è uno, la specie da realizzare è quella del singoletto
+ if(righe==1) {
+ //  cout<<"un solo singoletto"<<endl;;
+ flagSpecie=1;
+ }
+ //altrimenti determino quale singoletto realizzare
+ else flagSpecie=specieMatrice(percorsi[i][0], matrice, colonne, componentiRiga);
+ //se realizzando i caratteri del singoletto realizzo una specie della matrice iniziale
+ if(flagSpecie==1){
+ // cout<<"ok specie di matrice iniziale"<<endl;
+ stop=1;
+ k=determinaIndice(soluzione);
+ copiaSoluzione(soluzione,k,percorsi[i][0], matrice, colonne);
+
+ for(ii=0; ii<colonneO; ii++){
+ cont_neri=0;
+ for(jj=0; jj<righeO; jj++){
+ if(GRB[jj][ii]==1) {
+ cont_neri++;
+ }
+ }
+ if(cont_neri>0) car_universali[ii]=0;
+ if(cont_neri==0) car_universali[ii]=1;
+ }
+ for(ii=0; ii<righeO; ii++){
+ cont_specie=0;
+ for(jj=0; jj<colonneO; jj++){
+ if(GRB[ii][jj]!=0) {
+ cont_specie++;
+ }
+ }
+ if(cont_specie!=0) specie_realizzate[ii]=0;
+ if(cont_specie==0) specie_realizzate[ii]=1;
+ }
+ for(ii=0; ii<colonneO; ii++){
+ if (car_universali[ii]==1){
+ cont=0;
+ for(jj=0; jj<righeO; jj++){
+ if(GRB[jj][ii]==2) cont++;
+ }
+ if(cont==righeO) car_attivi[ii]=0;
+ if(cont<righeO) car_attivi[ii]=1;
+ }
+
+ }
+ // realizza_specie(GRB,righeO,colonneO,percorsi[i][0],specie_realizzate, car_universali, car_attivi);
+ aggiornaGRB(k,specie_realizzate, car_universali, car_attivi);
+ }
+ }
+ }
+ }
+ }
+ if((i==(nSo*nSi)-1)&(stop==0)) {
+ cout<<"Non esiste un percorso safe --> no soluzione!!!"<<endl;
+ exit(0);
+ }
+ }
+
+ // delete[] percorsi;
+ }
+
+*/
+
 
 
 void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* componentiRiga){ //matrice di soli massimali
@@ -1865,8 +2105,8 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
         int singolettiSafe[righe];
         int numeroPercorso;
         int percorsoOrdinato[righe];
-        int i,j,k, nSo, nSi, ii, jj;
-        int g;
+        int i,j,k,c, nSo, nSi, ii, jj;
+        int g,gGRB;
         //  int* c_universali;
         //  int* s_realizzate;
         //  int* c_attivi;
@@ -1874,8 +2114,8 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
         int cont_neri, cont_specie, cont;
         int stop;
         int flagSingoletti, somma, flagSpecie;
-        cout<<"TROVA PERCORSI"<<endl;
-        printMatrix(matrice,righe,colonne);
+//cout<<"TROVA PERCORSI"<<endl;
+//printMatrix(matrice,righe,colonne);
         nSo=0;
         nSi=0;
 
@@ -1907,7 +2147,7 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
         }
         if(somma==0){
                 flagSingoletti=1;
-                cout<<"Hasse di soli singoletti!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+                // cout<<"Hasse di soli singoletti!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
         }
 
 
@@ -1915,8 +2155,14 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
 
         //CASO DEGENERE: HASSE DI SOLI SINGOLETTI
         if(flagSingoletti==1){
+                //   cout<<"HASSE DEGENERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+                int percorsoGRB[righeO];
+                int safeGRB[righe];
+
+
                 flagSpecie=0;
                 g=0;
+                gGRB=0;
 //determino insieme di singoletti safe
                 for(i=0; i<righe; i++) singolettiSafe[i]=0;
                 for(i=0; i<righe; i++)percorsoOrdinato[i]=-1;
@@ -1925,17 +2171,64 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
                         singolettiSafe[i]=realizza_percorso(matrice, righe, colonne, percorsoOrdinato);
                         g=g+singolettiSafe[i];
                 }
+/*cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::singoletti safe: ";
+  for (i=0; i<righe; i++) cout<<singolettiSafe[i];
+  cout<<endl;*/
+
+//determino insieme di singoletti safe nel GRB
+                for(i=0; i<righe; i++) safeGRB[i]=-1;
+                for(i=0; i<righeO; i++) percorsoGRB[i]=-1;
+                for(i=0; i<righe; i++){
+                        percorsoGRB[0]=i;
+                        /* cout<<"percorsoGRB: ";
+                           for(ii=0; ii<righeO; ii++) cout<<percorsoGRB[ii];
+                           cout<<endl;*/
+                        //safeGRB[i]=realizza_percorso(GRB, righeO, colonneO, percorsoGRB);
+                        safeGRB[i]=VerificaSafeInGRB(matrice,righe,colonne,percorsoGRB[0]);
+                        gGRB=gGRB+safeGRB[i];
+                }
+/*cout<<"numero di singoletti safe in GRB: "<<gGRB<<endl;
+  cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$singoletti safe nel GRB: ";
+  for (i=0; i<righe; i++) cout<<safeGRB[i];
+  cout<<endl;*/
+
 
                 if(g==0){
-                        cout<<"Non esiste un percorso safe --> no soluzione!!!"<<endl;
+                        cout<<"Nessun singoletto safe --> No soluzione!!!"<<endl;
+                        fprintf(outno, "%s\n", fileName);
+                        exit(0);
+                }
+
+                if(gGRB==0){
+                        cout<<"Nessun singoletto safe in GRB --> No soluzione!!!"<<endl;
+                        fprintf(outno, "%s\n", fileName);
                         exit(0);
                 }
 
                 stop=0;
 //tra i safe, stabilisco se ce n'è uno corrispondente ad una specie della matrice iniziale. Se sì, lo scelgo
                 for(i=0; i<righe; i++){
+                        percorsoOrdinato[0]=i;
                         if(stop==0){    //se non ho ancora trovato un percorso valido
-                                if(singolettiSafe[i]==1){
+
+
+                                //se safe, verifico che sorgente sia safe anche in GRB
+                                /*    if (singolettiSafe[i]==1) {
+                                //tengo solo la sorgente del percorso, azzero il resto
+
+                                percorsoGRB[0]=percorsoOrdinato[0];
+
+                                cout<<"percorsoGRB: ";
+                                for(ii=0; ii<righeO; ii++) cout<<percorsoGRB[ii];
+                                cout<<endl;
+                                safeGRB=realizza_percorso(GRB, righeO, colonneO, percorsoGRB[0]);
+
+                                }*/
+
+                                // cout<<"safe[i].......................: "<<singolettiSafe[i]<<endl;
+                                // cout<<"safeGRB.......................: "<<safeGRB[i]<<endl;
+
+                                if((singolettiSafe[i]==1)&(safeGRB[i]==1)){
                                         //se il singoletto è uno ed è safe, la specie da realizzare è quella del singoletto
                                         if(righe==1) {
                                                 //  cout<<"un solo singoletto"<<endl;;
@@ -1987,11 +2280,27 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
                         }
                 }
 
-//se no, ne prendo uno a caso tra i safe
+//se no, ne prendo uno a caso tra i safe che sia safe anche nel GRB
                 if(flagSpecie==0){
+                        //  cout<<"no specie di matrice iniziale --> prendo un singoletto safe a caso"<<endl;
                         for(i=0; i<righe; i++){
+                                percorsoOrdinato[0]=i;
                                 if(stop==0){    //se non ho ancora trovato un percorso valido
-                                        if(singolettiSafe[i]==1){
+
+                                        /*  if (singolettiSafe[i]==1) {
+                                        //tengo solo la sorgente del percorso, azzero il resto
+
+                                        percorsoGRB[0]=percorsoOrdinato[0];
+
+                                        cout<<"percorsoGRB: ";
+                                        for(ii=0; ii<righeO; ii++) cout<<percorsoGRB[ii];
+                                        cout<<endl;
+                                        safeGRB=realizza_percorso(GRB, righeO, colonneO, percorsoGRB);
+
+                                        }*/
+                                        //    cout<<"safe[i].......................: "<<singolettiSafe[i]<<endl;
+                                        //    cout<<"safeGRB.......................: "<<safeGRB[i]<<endl;
+                                        if((singolettiSafe[i]==1)&(safeGRB[i]==1)){
                                                 stop=1;
                                                 k=determinaIndice(soluzione);
                                                 copiaSoluzione(soluzione,k,i, matrice, colonne);
@@ -2037,7 +2346,7 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         else if(flagSingoletti==0){
-
+                cout<<"HASSE NON degenere!"<<endl;
                 for(i=0; i<righe; i++){
                         sorgenti[i]=trova_sorgenti(i,righe);
                         sink[i]=trova_sink(i,righe);
@@ -2085,12 +2394,17 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
 
                 //determino quali percorsi sono safe
                 int safe[nSo*nSi];
+                int safeGRB[nSo*nSi];
+                int percorsoGRB[righeO];
+                // int ii;
 //        int percorsoOrdinato[righe];
                 for(i=0; i<righe; i++)percorsoOrdinato[i]=-1;
                 for(i=0; i<nSo*nSi; i++) safe[i]=-1;
+                for(i=0; i<nSo*nSi; i++) safeGRB[i]=-1;
+                for(i=0; i<righeO; i++) percorsoGRB[i]=-1;
                 stop=0;
                 for(i=0; i<nSo*nSi; i++){
-                        cout<<"Percorso numero "<<i<<endl;
+                        //   cout<<"Percorso numero "<<i<<endl;
 
                         if(stop==0){    //se non ho ancora trovato un percorso valido
                                 if(percorsi[i][0]!=-1){
@@ -2098,9 +2412,36 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
                                         // cout<<endl;
                                         //cout<<"..................determino se percorso "<<i<<" sia safe"<<endl;
                                         riordina_percorso(percorsoOrdinato,percorsi[i], righe); //inverto ordine dei nodi
+                                        // cout<<"percorso ordinato: ";
+                                        // for(ii=0; ii<righe; ii++) cout<<percorsoOrdinato[ii];
+                                        // cout<<endl;
                                         safe[i]=realizza_percorso(matrice, righe, colonne, percorsoOrdinato);
-                                        // cout<<"safe[i].......................: "<<safe[i]<<endl;
+                                        cout<<"safe[i].......................: "<<safe[i]<<endl;
+                                        //se safe, verifico che sorgente sia safe anche in GRB
                                         if(safe[i]==1){
+                                                //tengo solo la sorgente del percorso, azzero il resto
+                                                int p;
+                                                int pSorgente;
+                                                if(percorsoOrdinato[righe-1]!=-1){
+                                                        percorsoGRB[0]=percorsoOrdinato[righe-1];
+                                                }
+                                                else {
+                                                        for(p=0; p<righe-1; p++){
+                                                                if((percorsoOrdinato[p]!=-1)&(percorsoOrdinato[p+1]==-1)) pSorgente=p;
+                                                        }
+                                                        cout<<"posizioneSorgente: "<<pSorgente<<endl;
+                                                        percorsoGRB[0]=percorsoOrdinato[pSorgente];
+                                                }
+                                                cout<<"percorsoGRB: ";
+                                                for(ii=0; ii<righeO; ii++) cout<<percorsoGRB[ii];
+                                                cout<<endl;
+                                                // safeGRB[i]=realizza_percorso(matriceO,righeO,colonneO,percorsoGRB);
+                                                safeGRB[i]=VerificaSafeInGRB(matrice,righe,colonne,percorsoGRB[0]);
+
+                                        }
+                                        cout<<"safe[i].......................: "<<safe[i]<<endl;
+                                        cout<<"safeGRB[i].......................: "<<safeGRB[i]<<endl;
+                                        if((safe[i]==1)&(safeGRB[i]==1)){
                                                 stop=1;
                                                 k=determinaIndice(soluzione);
                                                 //   cout<<"Indice in cui copiare soluzione: "<<k<<endl;
@@ -2151,7 +2492,8 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
                                 }
                         }
                         if((i==(nSo*nSi)-1)&(stop==0)) {
-                                cout<<"Non esiste un percorso safe --> no soluzione!!!"<<endl;
+                                cout<<"No soluzione!!!"<<endl;
+                                fprintf(outno, "%s\n", fileName);
                                 exit(0);
                         }
                 }
@@ -2334,4 +2676,98 @@ int sottomatriceProibita(int ** a, int c1, int c2) {
         if (flag1 & flag2 & flag3) return 1; //esiste sottomatrice proibita
         else
                 return 0;  //non esiste sottomatrice proibita
+}
+
+int VerificaSafeInGRB(int** matrice, int righe, int colonne, int specie){
+        int i,j, cont_neri, cont_specie, cont;
+        int** grb;
+        int* c_universali;
+        int* s_realizzate;
+        int* c_attivi;
+
+        grb = (int **)calloc(righeO, sizeof(int *));
+        for (i = 0; i < righeO; i++){
+                grb[i] = (int *)calloc(colonneO, sizeof(int));
+        }
+
+        for (i = 0; i < righeO; i++) {
+                for (j = 0; j < colonneO; j++) {
+                        //  grb[i][j]=GRB[i][j];
+                        grb[i][j]=GRB[i][j];
+
+                }
+        }
+
+        c_universali=new int[colonneO];
+        for(i=0; i<colonneO; i++){
+                cont_neri=0;
+                for(j=0; j<righeO; j++){
+                        if(grb[j][i]==1) {
+                                cont_neri++;
+                        }
+                }
+                if(cont_neri>0) c_universali[i]=0;
+                if(cont_neri==0) c_universali[i]=1;
+        }
+        //specie realizzate: nessun arco entrante.
+        s_realizzate=new int[righeO];
+        for(i=0; i<righeO; i++){
+                cont_specie=0;
+                for(j=0; j<colonneO; j++){
+                        if(grb[i][j]!=0) {
+                                cont_specie++;
+                        }
+                }
+                if(cont_specie!=0) s_realizzate[i]=0;
+                if(cont_specie==0) s_realizzate[i]=1;
+        }
+
+        //caratteri attivi: attivo se reso universale e NON connesso con archi rossi a tutte le specie della sua componente
+        c_attivi=new int[colonneO];
+        for(i=0; i<colonneO; i++) c_attivi[i]=0;
+        for(i=0; i<colonneO; i++){
+                if (c_universali[i]==1){
+                        cont=0;
+                        for(j=0; j<righeO; j++){
+                                if(grb[j][i]==2) cont++;
+                        }
+                        if(cont==righeO) c_attivi[i]=0;
+                        if(cont<righeO) c_attivi[i]=1;
+                }
+        }
+        for(i=0; i<righe; i++){
+                if(matrice[specie][i]==1) {
+                        cout<<"provo a rendere universale "<<corrispondenzaMC[i]<<" in GRB"<<endl;
+                        rendi_universale(grb, righeO, colonneO, corrispondenzaMC[i], c_universali, c_attivi, s_realizzate, 0);
+                }
+        }
+
+        printMatrix(grb,righeO, colonneO);
+        if(sigmaRossi(grb,righeO,colonneO)) return 0;
+        return 1;
+}
+
+int sigmaRossi(int** matrice, int righe, int colonne){
+        int i,j;
+        int c1, c2;
+        int flag20, flag02, flag22;
+
+        for(c1=0; c1<colonne-1; c1++){
+                for(c2=1; c2<colonne; c2++){
+                        if(c1!=c2){
+                                flag20=0;
+                                flag02=0;
+                                flag22=0;
+
+                                for (i = 0; i < righe; i++) {
+                                        if ((matrice[i][c1] == 0 ) & (matrice[i][c2] == 2)) flag02 = 1;
+                                        if ((matrice[i][c1] == 2 ) & (matrice[i][c2] == 0)) flag20 = 1;
+                                        if ((matrice[i][c1] == 2 ) & (matrice[i][c2] == 2)) flag22 = 1;
+                                }
+                                if (flag02 & flag20 & flag22) return 1; //sigma nero
+                        }
+                }
+        }
+        return 0;
+
 }
