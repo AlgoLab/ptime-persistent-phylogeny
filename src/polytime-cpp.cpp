@@ -2195,13 +2195,11 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
 
                 if(g==0){
                         cout<<"Nessun singoletto safe --> No soluzione!!!"<<endl;
-                        fprintf(outno, "%s\n", fileName);
                         exit(0);
                 }
 
                 if(gGRB==0){
                         cout<<"Nessun singoletto safe in GRB --> No soluzione!!!"<<endl;
-                        fprintf(outno, "%s\n", fileName);
                         exit(0);
                 }
 
@@ -2493,7 +2491,6 @@ void trovaPercorsi(int** matrice, int** hasse, int righe, int colonne, int* comp
                         }
                         if((i==(nSo*nSi)-1)&(stop==0)) {
                                 cout<<"No soluzione!!!"<<endl;
-                                fprintf(outno, "%s\n", fileName);
                                 exit(0);
                         }
                 }
