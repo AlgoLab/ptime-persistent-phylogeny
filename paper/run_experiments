@@ -25,12 +25,12 @@ perl -e 's/output/input/' -p segfaults-logs.txt | perl -e 's/\.out.gz/_M.txt/' -
 perl -e 's/output/input/' -p false-positive-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > false-positive.txt
 perl -e 's/output/input/' -p false-negative-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > false-negative.txt
 
-tar cqzf segfaults.tar.gz -T segfaults.txt
-tar cqzf false-negative.tar.gz -T false-negative.txt
-tar cqzf false-positive.tar.gz -T false-positive.txt
-tar cqzf segfaults-logs.tar.gz -T segfaults-logs.txt
-tar cqzf false-negative-logs.tar.gz -T false-negative-logs.txt
-tar cqzf false-positive-logs.tar.gz -T false-positive-logs.txt
+tar czf segfaults.tar.gz -T segfaults.txt
+tar czf false-negative.tar.gz -T false-negative.txt
+tar czf false-positive.tar.gz -T false-positive.txt
+tar czf segfaults-logs.tar.gz -T segfaults-logs.txt
+tar czf false-negative-logs.tar.gz -T false-negative-logs.txt
+tar czf false-positive-logs.tar.gz -T false-positive-logs.txt
 
 echo "Number of instances: "$(ls -l output/*.log.gz | wc -l)
 echo "Segfaults: "$(wc -l segfaults.txt)
