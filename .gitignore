@@ -31,3 +31,15 @@
 # Experiments for the paper
 paper/input
 paper/output
+paper/segfaults.tar.gz
+paper/segfaults.txt
+paper/false-negative.tar.gz
+paper/false-negative.txt
+paper/false-positive.tar.gz
+paper/false-positive.txt
+paper/segfaults-logs.tar.gz
+paper/segfaults-logs.txt
+paper/false-negative-logs.tar.gz
+paper/false-negative-logs.txt
+paper/false-positive-logs.tar.gz
+paper/false-positive-logs.txt
