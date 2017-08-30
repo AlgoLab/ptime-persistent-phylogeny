@@ -38,7 +38,7 @@ do
     logfile="$outputdir"/"$type"_"$base".log
     outfile="$outputdir"/"$type"_"$base".out
     infile="$inputdir"/"$type"_"$base"_M.txt
-    if [[ ( ! -f "$logfile" ) && ( ! -f "$logfile".gz ) ]]
+    if [[ ( ! -f "$logfile" ) && ( ! -f "$logfile".xz ) ]]
     then
         touch "$logfile"
         if [ ! -f "$infile" ]
@@ -50,7 +50,6 @@ do
         fullcmd="$timecmd $bin $infile > $outfile"
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
-        grep "(Ok|No)" "$outfile" > "$outfile".result
-        gzip -f9 "$outfile" "$logfile"
+        xz -9 "$outfile" "$logfile"
     fi
 done
