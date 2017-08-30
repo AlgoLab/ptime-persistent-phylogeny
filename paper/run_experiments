@@ -18,9 +18,9 @@ parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rat
           ::: instance {0..9}
 
 # Summary of results
-zgrep signal tests/output/*.log.gz | perl -e 's/\.log.gz.*/.out.gz/' -p > segfaults-logs.txt
-zgrep Ok tests/output/no*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > false-positive-logs.txt
-zgrep No tests/output/ok*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > false-negative-logs.txt
+zgrep signal output/*.log.gz | perl -e 's/\.log.gz.*/.out.gz/' -p > segfaults-logs.txt
+zgrep Ok output/no*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > false-positive-logs.txt
+zgrep No output/ok*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > false-negative-logs.txt
 perl -e 's/output/input/' -p segfaults-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > segfaults.txt
 perl -e 's/output/input/' -p false-positive-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > false-positive.txt
 perl -e 's/output/input/' -p false-negative-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > false-negative.txt
@@ -32,7 +32,7 @@ tar cqzf segfaults-logs.tar.gz -T segfaults-logs.txt
 tar cqzf false-negative-logs.tar.gz -T false-negative-logs.txt
 tar cqzf false-positive-logs.tar.gz -T false-positive-logs.txt
 
-echo "Number of instances: "$(ls -l tests/output/*.log.gz | wc -l)
+echo "Number of instances: "$(ls -l output/*.log.gz | wc -l)
 echo "Segfaults: "$(wc -l segfaults.txt)
 echo "False positive: "$(wc -l false-positive.txt)
 echo "False negative: "$(wc -l false-negative.txt)
