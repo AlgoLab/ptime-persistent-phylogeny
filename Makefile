@@ -20,6 +20,9 @@ CFLAGS = $(CFLAGS_STD) $(CFLAGS_EXTRA)
 OBJECTS = $(SOURCES:%.cpp=$(OBJ_DIR)/%.o) $(LIBS)
 CC_FULL = $(CC) $(CFLAGS) $(CFLAGS_LIBS)
 
+paper: bin
+	cd paper && ./run_experiment
+
 # dist: CFLAGS +=  -O3 -DNDEBUG
 # dist: bin
 bin: $(P)
@@ -53,12 +56,6 @@ ${OBJ_DIR}/%.o: $(SRC_DIR)/%.cpp $(LIBS)
 	@mkdir -p $(dir $@)
 	$(CC_FULL) -o $@ -c $<
 
-# ${LIB_DIR}/%.o: $(LIB_DIR)/%.cpp
-# 	@echo '* Compiling $<'
-# 	@mkdir -p $(dir $@)
-# 	$(CC_FULL) -MM -MF $(patsubst %.c,%.d,$<)  -MT $@ $<
-# 	$(CC_FULL) -o $@ -c $<
-
 
 clean: clean-test
 	@echo "Cleaning..."
@@ -68,23 +65,13 @@ clean-test:
 	@echo "Cleaning tests..."
 	rm -rf ${TEST_DIR}/*.o ${TEST_DIR}/*/output/*
 
-# # The regression tests directory structure is:
-# # tests/regression/input    : input matrix
-# # tests/regression/output   : actual outputs and diffs
-# # tests/regression/ok       : expected outputs
-# REG_TESTS_DIR := tests/regression
-# REG_TESTS_OK   := $(wildcard $(REG_TESTS_DIR)/ok/*)
-# REG_TESTS_DIFF := $(REG_TESTS_OK:$(REG_TESTS_DIR)/ok/%=$(REG_TESTS_DIR)/output/%.diff)
-
-# tests: test 
-# test: dist $(REG_TESTS_OK) 
-# 	tests/bin/run-tests.sh
+# tests: test
 
 
 # doc: dist
 # 	doxygen && cd docs/latex/ && latexmk -recorder -use-make -pdf refman
 
-# .PHONY: all clean doc unit-test clean-test regression-test profile
+.PHONY: all clean doc paper
 
 # ifneq "$(MAKECMDGOALS)" "clean"
 # -include ${SOURCES:.c=.d}
