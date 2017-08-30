@@ -50,6 +50,7 @@ do
         fullcmd="$timecmd $bin $infile > $outfile"
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
+        grep "(Ok|No)" "$outfile" > "$outfile".result
         gzip -f9 "$outfile" "$logfile"
     fi
 done

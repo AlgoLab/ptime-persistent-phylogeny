@@ -10,6 +10,7 @@ for dir in "$inputdir" "$outputdir" "$okdir"
 do
     test -d "$dir" || mkdir -p "$dir"
 done
+rm -fr segfaults false-positive false-negative
 
 parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rate} {instance} \
           ::: species  80 40 20 10  1280 640 320 160 \
@@ -19,8 +20,8 @@ parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rat
 
 # Summary of results
 zgrep signal output/*.log.gz | perl -e 's/\.log.gz.*/.out.gz/' -p > segfaults-logs.txt
-zgrep Ok output/no*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > false-positive-logs.txt
-zgrep No output/ok*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > false-negative-logs.txt
+zgrep Ok output/no*.result | perl -e 's/\.out.gz.*/.out.gz/' -p > false-positive-logs.txt
+zgrep No output/ok*.result | perl -e 's/\.out.gz.*/.out.gz/' -p > false-negative-logs.txt
 perl -e 's/output/input/' -p segfaults-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > segfaults.txt
 perl -e 's/output/input/' -p false-positive-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > false-positive.txt
 perl -e 's/output/input/' -p false-negative-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > false-negative.txt
