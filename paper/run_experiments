@@ -1,0 +1,38 @@
+#!/bin/bash
+
+[[ "$1" = "" ]] && echo "Argument required: number of parallel jobs" \
+    && echo "Example: all_experiments 10" && exit
+
+echo "Starting $1 parallel jobs"
+
+source ./generate_tests.conf
+for dir in "$inputdir" "$outputdir" "$okdir"
+do
+    test -d "$dir" || mkdir -p "$dir"
+done
+
+parallel  -j "$1" --header : ./1_test.sh {species} {characters} {mutation_rate} {instance} \
+          ::: species  80 40 20 10  1280 640 320 160 \
+          ::: characters 4 3 2 \
+          ::: mutation_rate 0.64 0.32 0.16 0.08 0.04 0.02 0.01  \
+          ::: instance {0..9}
+
+# Summary of results
+zgrep signal tests/output/*.log.gz | perl -e 's/\.log.gz.*/.out.gz/' -p > segfaults-logs.txt
+zgrep Ok tests/output/no*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > false-positive-logs.txt
+zgrep No tests/output/ok*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > false-negative-logs.txt
+perl -e 's/output/input/' -p segfaults-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > segfaults.txt
+perl -e 's/output/input/' -p false-positive-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > false-positive.txt
+perl -e 's/output/input/' -p false-negative-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > false-negative.txt
+
+echo "Number of instances: "$(ls -l tests/output/*.log.gz | wc -l)
+echo "Segfaults: "$(wc -l segfaults.txt)
+echo "False positive: "$(wc -l false-positive.txt)
+echo "False negative: "$(wc -l false-negative.txt)
+
+tar cvzf segfaults.tar.gz -T segfaults.txt
+tar cvzf false-negative.tar.gz -T false-negative.txt
+tar cvzf false-positive.tar.gz -T false-positive.txt
+tar cvzf segfaults-logs.tar.gz -T segfaults-logs.txt
+tar cvzf false-negative-logs.tar.gz -T false-negative-logs.txt
+tar cvzf false-positive-logs.tar.gz -T false-positive-logs.txt

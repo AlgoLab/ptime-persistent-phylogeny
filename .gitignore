@@ -27,3 +27,7 @@
 *.exe
 *.out
 *.app
+
+# Experiments for the paper
+paper/input
+paper/output
