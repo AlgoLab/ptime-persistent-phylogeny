@@ -50,6 +50,6 @@ do
         fullcmd="$timecmd $bin $infile > $outfile"
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
-        xz -9 "$outfile" "$logfile"
+        xz -9 "$outfile"
     fi
 done
