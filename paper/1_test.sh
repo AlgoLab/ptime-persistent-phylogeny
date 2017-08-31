@@ -1,10 +1,28 @@
 #!/bin/bash
 
+# Config
+# Max allowed running time
+timeout=15
+# Max allowed RAM (in GBytes)
+maxram=8
+ulimit -Sv $(( ${maxram} * 1024 * 1024 ))
+# Program to test
+bin=$(readlink -f ../bin/polytime-cpp)
+test -x "$bin" || exit 1
+
+inputdir=./input
+outputdir=./output
+okdir=./ok
+
+# End config
+
 n="$1"
 m=$(($2 * $n / 2))
 rate="$3"
 i="$4"
-source ./generate_tests.conf
+
+
+
 
 base=${n}_${m}_${rate}_${i}
 okfile=ok_${n}_${m}_${rate}_${i}

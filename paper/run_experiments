@@ -4,12 +4,11 @@ jobs=$1
 [[ "$jobs" = "" ]] && jobs=1
 
 echo "Starting $1 parallel jobs"
-
-source ./generate_tests.conf
-for dir in "$inputdir" "$outputdir" "$okdir"
+for dir in input output ok
 do
     test -d "$dir" || mkdir -p "$dir"
 done
+
 rm -fr segfaults false-positive false-negative
 
 parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rate} {instance} \
