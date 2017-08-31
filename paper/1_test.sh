@@ -31,7 +31,7 @@ nofile=no_${n}_${m}_${rate}_${i}
 echo "New run: $n $m $rate $i"
 
 # Generate the instances
-if [ ! -f "$inputdir"/"$okfile"_M.txt ]
+if [[ ( ! -f "$inputdir"/"$okfile"_M.txt ) && ( ! -f "$inputdir"/"$okfile"_M.txt.xz ) ]]
 then 
 	echo "generate instance: $okfile_M.txt"
     touch "$inputdir"/"$okfile"_M.txt
@@ -40,7 +40,7 @@ then
     ./generatePersistent.sh $n $m $rate $okfile > "$okfile".log
     mv "$okfile"* "$inputdir"/
 fi
-if [ ! -f "$inputdir"/"$nofile"_M.txt ]
+if [[ ( ! -f "$inputdir"/"$nofile"_M.txt ) && ( ! -f "$inputdir"/"$nofile"_M.txt.xz ) ]]
 then 
 	echo "generate instance: $nofile_M.txt"
     touch "$inputdir"/"$nofile"_M.txt
