@@ -33,20 +33,20 @@ echo "New run: $n $m $rate $i"
 # Generate the instances
 if [[ ( ! -f "$inputdir"/"$okfile"_M.txt ) && ( ! -f "$inputdir"/"$okfile"_M.txt.xz ) ]]
 then 
-	echo "generate instance: $okfile_M.txt"
-    touch "$inputdir"/"$okfile"_M.txt
-    rm -f "$outputdir"/ok_"$base".{log,out}
-    cd ~/matrixgenerator/generate_persistent
-    ./generatePersistent.sh $n $m $rate $okfile > "$okfile".log
+    echo "generate instance: ${okfile}_M.txt"
+    touch "$inputdir"/"${okfile}"_M.txt
+    rm -f "${outputdir}"/ok_"$base".{log,out}
+    cd ~/matrixgenerator/generate_persistent || exit 1
+    ./generatePersistent.sh "$n" "$m" "$rate" "$okfile" > "$okfile".log
     mv "$okfile"* "$inputdir"/
 fi
 if [[ ( ! -f "$inputdir"/"$nofile"_M.txt ) && ( ! -f "$inputdir"/"$nofile"_M.txt.xz ) ]]
 then 
-	echo "generate instance: $nofile_M.txt"
+    echo "generate instance: ${nofile}_M.txt"
     touch "$inputdir"/"$nofile"_M.txt
     rm -f "$outputdir"/no_"$base".{log,out}
-    cd ~/matrixgenerator/generate_persistent
-    ./generatePersistent.sh -n $n $m $rate $nofile> "$nofile".log
+    cd ~/matrixgenerator/generate_persistent || exit 1
+    ./generatePersistent.sh -n "$n" "$m" "$rate" "$nofile"> "$nofile".log
     mv "$nofile"_M.txt "$inputdir"/
 fi
 
