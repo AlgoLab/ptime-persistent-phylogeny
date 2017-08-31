@@ -39,6 +39,7 @@ then
     cd ~/matrixgenerator/generate_persistent || exit 1
     ./generatePersistent.sh "$n" "$m" "$rate" "$okfile" > "$okfile".log
     mv "$okfile"* "$inputdir"/
+    xz -9 "$inputdir"/"$okfile"_M.txt
 fi
 if [[ ( ! -f "$inputdir"/"$nofile"_M.txt ) && ( ! -f "$inputdir"/"$nofile"_M.txt.xz ) ]]
 then 
@@ -48,6 +49,7 @@ then
     cd ~/matrixgenerator/generate_persistent || exit 1
     ./generatePersistent.sh -n "$n" "$m" "$rate" "$nofile"> "$nofile".log
     mv "$nofile"_M.txt "$inputdir"/
+    xz -9 "$inputdir"/"$nofile"_M.txt
 fi
 
 # Solving instances
@@ -61,6 +63,7 @@ do
         touch "$logfile"
         if [ ! -f "$infile" ]
         then
+            unxz -k "$infile".xz
             echo "Missing $infile!"
             exit 2
         fi
@@ -69,5 +72,6 @@ do
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
         xz -9 "$outfile"
+        rm -f "$infile"
     fi
 done
