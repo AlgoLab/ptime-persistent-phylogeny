@@ -1,5 +1,5 @@
 //sovradimensiono a 1000 il numero nSo*nSi
-
+//RICERCA PERCORSI NUOVA
 #include<stdlib.h>
 #include<stdio.h>
 #include <iostream>
@@ -3320,14 +3320,39 @@ else{
                         }
                       }
 
-                      //se non ho specie star, realizzo a caso una specie tra quelle safe da entrambe le parti
+        //se non ho specie star, realizzo la specie safe con più car attivi
                  else if(countStar==0){
-                        cout<<"no star: realizzo una tra le safe"<<endl;
+                        cout<<"no star: realizzo la specie safe con più car attivi"<<endl;
+
+                         int countAttivi[1000];
+            for(i=0; i<1000; i++) countAttivi[i]=0;
+            for(i=0; i<1000; i++){
+                  if((safe[i]==1)&(safeGRB[i]==1)){
+                        for(j=0; j<colonne; j++){
+                            if((matrice[percorsi[i][0]][j]==0) & (attivo(j, matrice, righe))) countAttivi[i]++;
+                        }
+                        cout<<"countAttivi: "<<countAttivi[i]<<endl;
+                  }
+            }
+           int max=trovaMassimo(countAttivi); //indice del percorso in cui la sorgente ha il maggior numero di caratteri attivi
+            cout<<"max: "<<max<<endl;
+
                     for(i=0; i<1000; i++){
+                            cout<<"stop: "<<stop<<endl;
+                            if(stop==0){
+                                if((safe[i]==1)&(safeGRB[i]==1)){
+                                       // if((corrispondenzaSpecie[i]==1) & (i==max)){
+                                       if(i==max){
+                                                cout<<"i: "<<i<<endl;
+                                        stop=1;
+                                        k=determinaIndice(soluzione);
+                                        cout<<"k: "<<k<<endl;
+
+                /*    for(i=0; i<1000; i++){
                             if(stop==0){
                                 if((safe[i]==1)&(safeGRB[i]==1)){
                                         stop=1;
-                                        k=determinaIndice(soluzione);
+                                        k=determinaIndice(soluzione);*/
                                          //  cout<<"Indice in cui copiare soluzione: "<<k<<endl;
                                         //copio caratteri, in base alla tabella di associazione originale-indotto
                                         copiaSoluzione(soluzione,k,percorsi[i][0], matrice, colonne);
@@ -3373,6 +3398,7 @@ else{
                                         aggiornaGRB(k,specie_realizzate, car_universali, car_attivi);
                                 }
                                 }
+                }
                         }
                  }
 
