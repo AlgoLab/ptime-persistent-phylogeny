@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+# coding: utf-8
+
+# Copyright 2017
+# Gianluca Della Vedova <http://gianluca.dellavedova.org>
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# This program receives a matrix (option -m) and extracts a submatrix where all characters are
+# maximal, and the associated red-black graph is connected.
+# The program extracts the first maximal character c_m including the first character c_1
+# Then iteratively it computes the set C such that:
+# 1. C contains only maximal characters
+# 2. no character outside of C overlaps some character of C
+# 3. c_m\n C
+#
+# Finally, only the species possessing some character of C are output.
+# The output is printed to the standard output
+
+import sys
+import itertools
+
+def extract_character(self, char):
+    return [row[char] for row in self]
+
+
+def maximal_characters(cols):
+    maximal = list(range(num_characters))
+    found = True
+    while found:
+        found = False
+        for small in maximal:
+            supersets = [big for big in maximal if cols[big] >= cols[small]]
+            if len(supersets) >= 2:
+                maximal.remove(small)
+                found = True
+                break
+    return maximal
+
+# Do columns a and b overlap?
+def overlapp(cols, a, b):
+    return not (cols[a] <= cols[b] or cols[b] <= cols[a])
+
+
+def extract_distinct_rows(matrix, columns):
+    rows = []
+    for r in matrix:
+        rows.append([r[c] for c in columns])
+    rows.sort()
+    return list(rows for rows,_ in itertools.groupby(rows))
+
+f = sys.stdin.readlines()
+(num_species, num_characters) = [int(x) for x in f[0].rstrip().split(' ')]
+
+matrix = [ row.rstrip().split(' ') for row in f[2:] ]
+
+columns = [ ]
+for c in range(num_characters):
+    columns.append(set([i for i in range(num_species) if extract_character(matrix, c)[i] == '1']))
+
+# Pick a maximal character
+skeleton = set()
+skeleton.add(maximal_characters(columns)[0])
+
+#Enlarge the skeleton with all overlapping characters
+queue = skeleton.copy()
+while len(queue) > 0:
+    outside = set(range(num_characters)).difference(skeleton)
+    s = queue.pop()
+    overlap = set([ext for ext in outside if overlapp(columns, s, ext)])
+    # print(s, outside)
+    # print(queue)
+    # print(overlap)
+    # print('======')
+    if len(overlap) > 0:
+        skeleton = skeleton.union(overlap)
+        queue = queue.union(overlap)
+        # print('==')
+        # print('s', skeleton)
+        # print('q', queue, len(queue))
+        # print('o', overlap)
+        # print('===')
+m = extract_distinct_rows(matrix, skeleton)
+print(len(m), len(skeleton))
+print("")
+for x in [' '.join(row) for row in m]:
+    print(x)
