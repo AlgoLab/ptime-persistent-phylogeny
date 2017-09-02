@@ -28,9 +28,9 @@ parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rat
 grep signal output/*.log | perl -e 's/\.log.*/.out.xz/' -p > segfaults-logs.txt
 xzgrep Ok output/no*.out.xz | perl -e 's/\.out.xz.*/.out.xz/' -p > false-positive-logs.txt
 xzgrep No output/ok*.out.xz | perl -e 's/\.out.xz.*/.out.xz/' -p > false-negative-logs.txt
-perl -e 's/output/input/' -p segfaults-logs.txt | perl -e 's/\.out.xz/_M.txt/' -p > segfaults.txt
-perl -e 's/output/input/' -p false-positive-logs.txt | perl -e 's/\.out.xz/_M.txt/' -p > false-positive.txt
-perl -e 's/output/input/' -p false-negative-logs.txt | perl -e 's/\.out.xz/_M.txt/' -p > false-negative.txt
+perl -e 's/output/input/' -p segfaults-logs.txt | perl -e 's/\.out.xz/_M.txt.xz/' -p > segfaults.txt
+perl -e 's/output/input/' -p false-positive-logs.txt | perl -e 's/\.out.xz/_M.txt.xz/' -p > false-positive.txt
+perl -e 's/output/input/' -p false-negative-logs.txt | perl -e 's/\.out.xz/_M.txt.xz/' -p > false-negative.txt
 
 tar czf segfaults.tar.gz -T segfaults.txt
 tar czf false-negative.tar.gz -T false-negative.txt

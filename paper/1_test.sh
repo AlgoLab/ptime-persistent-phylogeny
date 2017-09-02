@@ -34,9 +34,8 @@ echo "New run: $n $m $rate $i"
 # Generate the instances
 if [[ ( ! -f "$inputdir"/"$okfile"_M.txt ) && ( ! -f "$inputdir"/"$okfile"_M.txt.xz ) ]]
 then 
-    echo "generate instance: ${okfile}_M.txt"
+    echo "generate instance: ${inputdir}/${okfile}_M.txt"
     touch "$inputdir"/"${okfile}"_M.txt
-    rm -f "${outputdir}"/ok_"$base".{log,out}
     cd ~/matrixgenerator/generate_persistent || exit 1
     ./generatePersistent.sh "$n" "$m" "$rate" "$okfile" > "$okfile".log
     mv "$okfile"* "$inputdir"/
@@ -44,9 +43,8 @@ then
 fi
 if [[ ( ! -f "$inputdir"/"$nofile"_M.txt ) && ( ! -f "$inputdir"/"$nofile"_M.txt.xz ) ]]
 then 
-    echo "generate instance: ${nofile}_M.txt"
+    echo "generate instance: ${inputdir}/${nofile}_M.txt"
     touch "$inputdir"/"$nofile"_M.txt
-    rm -f "$outputdir"/no_"$base".{log,out}
     cd ~/matrixgenerator/generate_persistent || exit 1
     ./generatePersistent.sh -n "$n" "$m" "$rate" "$nofile"> "$nofile".log
     mv "$nofile"_M.txt "$inputdir"/
@@ -80,9 +78,9 @@ do
     if [[ ( ! -f "$logfile" ) && ( ! -f "$logfile".xz ) ]]
     then
         touch "$logfile"
+        unxz -k "$infile".xz
         if [ ! -f "$infile" ]
         then
-            unxz -k "$infile".xz
             echo "Missing $infile!"
             exit 2
         fi
@@ -90,7 +88,10 @@ do
         fullcmd="$timecmd $bin $infile > $outfile"
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
-        xz -9 "$outfile"
+        xz -f9 "$outfile"
+        rm -f "$infile"
+    fi
+done
 # Solving skeletons
 for type in ok no
 do
