@@ -12,10 +12,17 @@ done
 rm -fr segfaults false-positive false-negative
 
 parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rate} {instance} \
-          ::: species  80 40 20 10  1280 640 320 160 \
+          ::: species 40 20 10 \
           ::: characters 4 3 2 \
           ::: mutation_rate 0.64 0.32 0.16 0.08 0.04 0.02 0.01  \
           ::: instance {0..9}
+
+# TODO reactivate
+# parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rate} {instance} \
+    #           ::: species 1280 640 320 160 80 \
+    #           ::: characters 4 3 2 \
+    #           ::: mutation_rate 0.64 0.32 0.16 0.08 0.04 0.02 0.01  \
+    #           ::: instance {0..9}
 
 # Summary of results
 grep signal output/*.log | perl -e 's/\.log.*/.out.xz/' -p > segfaults-logs.txt
