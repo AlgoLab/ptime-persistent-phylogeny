@@ -7,12 +7,13 @@ timeout=15
 maxram=8
 ulimit -Sv $(( ${maxram} * 1024 * 1024 ))
 # Program to test
+bindir=$(readlink -f ../paper/)
 bin=$(readlink -f ../bin/polytime-cpp)
 test -x "$bin" || exit 1
 
-inputdir=./input
-outputdir=./output
-okdir=./ok
+inputdir=$(readlink -f ./input)
+outputdir=$(readlink -f ./output)
+okdir=$(readlink -f ./ok)
 
 # End config
 
@@ -52,6 +53,24 @@ then
     xz -9 "$inputdir"/"$nofile"_M.txt
 fi
 
+# Generate skeletons
+if [[ ( ! -f "$inputdir"/../skeletons-input/"$okfile"_M.txt ) && ( ! -f "$inputdir"/../skeletons-input/"$okfile"_M.txt.xz ) ]]
+then 
+    echo "generate skeleton: ${inputdir}/${okfile}_M.txt"
+    touch "$inputdir"/../skeletons-input/"$okfile"_M.txt
+    xzcat "$inputdir"/"$okfile"_M.txt.xz | "$bindir"/extract_skeleton > "$inputdir"/../skeletons-input/"$okfile"_M.txt
+    xz -9 "$inputdir"/../skeletons-input/"$okfile"_M.txt
+    rm -f "$inputdir"/../skeletons-input/"$okfile"_M.txt.ms "$inputdir"/"$okfile"_M.txt
+fi
+if [[ ( ! -f "$inputdir"/../skeletons-input/"$nofile"_M.txt ) && ( ! -f "$inputdir"/../skeletons-input/"$nofile"_M.txt.xz ) ]]
+then 
+    echo "generate skeleton: ${inputdir}/${nofile}_M.txt"
+    touch "$inputdir"/../skeletons-input/"$nofile"_M.txt
+    xzcat "$inputdir"/"$nofile"_M.txt.xz | "$bindir"/extract_skeleton > "$inputdir"/../skeletons-input/"$nofile"_M.txt
+    xz -9 "$inputdir"/../skeletons-input/"$nofile"_M.txt
+    rm -f "$inputdir"/../skeletons-input/"$nofile"_M.txt.ms "$inputdir"/"$nofile"_M.txt
+fi
+
 # Solving instances
 for type in ok no
 do
@@ -72,6 +91,26 @@ do
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
         xz -9 "$outfile"
+# Solving skeletons
+for type in ok no
+do
+    logfile="$outputdir"/../skeletons-output/"$type"_"$base".log
+    outfile="$outputdir"/../skeletons-output/"$type"_"$base".out
+    infile="$inputdir"/../skeletons-input/"$type"_"$base"_M.txt
+    if [[ ( ! -f "$logfile" ) && ( ! -f "$logfile".xz ) ]]
+    then
+        touch "$logfile"
+        unxz -k "$infile".xz
+        if [ ! -f "$infile" ]
+        then
+            echo "Missing $infile!"
+            exit 2
+        fi
+        timecmd="/usr/bin/time -f \"%e\" -o $logfile /usr/bin/timeout -s 9 ${timeout}m"
+        fullcmd="$timecmd $bin $infile > $outfile"
+	echo "Solving: $infile > $outfile" 
+        eval "$fullcmd"
+        xz -f9 "$outfile"
         rm -f "$infile"
     fi
 done

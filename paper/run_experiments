@@ -4,7 +4,7 @@ jobs=$1
 [[ "$jobs" = "" ]] && jobs=1
 
 echo "Starting $1 parallel jobs"
-for dir in input output ok
+for dir in input output ok skeletons-input skeletons-output
 do
     test -d "$dir" || mkdir -p "$dir"
 done
@@ -36,3 +36,13 @@ echo "Number of instances: "$(ls -l output/*.log | wc -l)
 echo "Segfaults: "$(wc -l segfaults.txt)
 echo "False positive: "$(wc -l false-positive.txt)
 echo "False negative: "$(wc -l false-negative.txt)
+
+zgrep signal tests/skeletons-output/*.log.gz | perl -e 's/\.log.gz.*/.out.gz/' -p > skeletons-segfaults-logs.txt
+zgrep No tests/skeletons-output/ok*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > skeletons-false-negative-logs.txt
+perl -e 's/skeletons-output/skeletons/' -p skeletons-segfaults-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > skeletons-segfaults.txt
+perl -e 's/skeletons-output/skeletons/' -p skeletons-false-negative-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > skeletons-false-negative.txt
+
+tar cvzf skeletons-segfaults.tar.gz -T skeletons-segfaults.txt
+tar cvzf skeletons-false-negative.tar.gz -T skeletons-false-negative.txt
+tar cvzf skeletons-segfaults-logs.tar.gz -T skeletons-segfaults-logs.txt
+tar cvzf skeletons-false-negative-logs.tar.gz -T skeletons-false-negative-logs.txt
