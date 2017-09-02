@@ -15,7 +15,7 @@ parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rat
           ::: species 40 20 10 \
           ::: characters 4 3 2 \
           ::: mutation_rate 0.64 0.32 0.16 0.08 0.04 0.02 0.01  \
-          ::: instance {0..9}
+          ::: instance {0..99}
 
 # TODO reactivate
 # parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rate} {instance} \
