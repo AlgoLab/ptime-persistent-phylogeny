@@ -4,7 +4,7 @@ jobs=$1
 [[ "$jobs" = "" ]] && jobs=4
 
 echo "Starting $1 parallel jobs"
-for dir in input output ok skeletons-input skeletons-output
+for dir in input output ok skeletons-input skeletons-output summary
 do
     test -d "$dir" || mkdir -p "$dir"
 done
@@ -25,31 +25,40 @@ parallel  -j "$jobs" --header : ./1_test.sh {species} {characters} {mutation_rat
     #           ::: instance {0..9}
 
 # Summary of results
-grep signal output/*.log | perl -e 's/\.log.*/.out.xz/' -p > segfaults-logs.txt
-xzgrep Ok output/no*.out.xz | perl -e 's/\.out.xz.*/.out.xz/' -p > false-positive-logs.txt
-xzgrep No output/ok*.out.xz | perl -e 's/\.out.xz.*/.out.xz/' -p > false-negative-logs.txt
-perl -e 's/output/input/' -p segfaults-logs.txt | perl -e 's/\.out.xz/_M.txt.xz/' -p > segfaults.txt
-perl -e 's/output/input/' -p false-positive-logs.txt | perl -e 's/\.out.xz/_M.txt.xz/' -p > false-positive.txt
-perl -e 's/output/input/' -p false-negative-logs.txt | perl -e 's/\.out.xz/_M.txt.xz/' -p > false-negative.txt
+grep -m 1 -H signal output/*.log                          | perl -e 's/\.log.*/.out.xz/'    -p > summary/segfaults-logs.txt
+parallel -j "$jobs" xzgrep -m 1 -H Ok ::: output/no*.out.xz | perl -e 's/\.out.xz.*/.out.xz/' -p > summary/false-positive-logs.txt
+parallel -j "$jobs" xzgrep -m 1 -H No ::: output/ok*.out.xz | perl -e 's/\.out.xz.*/.out.xz/' -p > summary/false-negative-logs.txt
+perl -e 's/output/input/' -p summary/segfaults-logs.txt      | perl -e 's/\.out.xz/_M.txt.xz/' -p > summary/segfaults.txt
+perl -e 's/output/input/' -p summary/false-positive-logs.txt | perl -e 's/\.out.xz/_M.txt.xz/' -p > summary/false-positive.txt
+perl -e 's/output/input/' -p summary/false-negative-logs.txt | perl -e 's/\.out.xz/_M.txt.xz/' -p > summary/false-negative.txt
 
-tar czf segfaults.tar.gz -T segfaults.txt
-tar czf false-negative.tar.gz -T false-negative.txt
-tar czf false-positive.tar.gz -T false-positive.txt
-tar czf segfaults-logs.tar.gz -T segfaults-logs.txt
-tar czf false-negative-logs.tar.gz -T false-negative-logs.txt
-tar czf false-positive-logs.tar.gz -T false-positive-logs.txt
+
+tar czf summary/segfaults.tar.gz           -T summary/segfaults.txt
+tar czf summary/false-negative.tar.gz      -T summary/false-negative.txt
+tar czf summary/false-positive.tar.gz      -T summary/false-positive.txt
+tar czf summary/segfaults-logs.tar.gz      -T summary/segfaults-logs.txt
+tar czf summary/false-negative-logs.tar.gz -T summary/false-negative-logs.txt
+tar czf summary/false-positive-logs.tar.gz -T summary/false-positive-logs.txt
 
 echo "Number of instances: "$(ls -l output/*.log | wc -l)
-echo "Segfaults: "$(wc -l segfaults.txt)
-echo "False positive: "$(wc -l false-positive.txt)
-echo "False negative: "$(wc -l false-negative.txt)
+echo "Segfaults: "$(wc -l summary/segfaults.txt)
+echo "False positive: "$(wc -l summary/false-positive.txt)
+echo "False negative: "$(wc -l summary/false-negative.txt)
 
-zgrep signal tests/skeletons-output/*.log.gz | perl -e 's/\.log.gz.*/.out.gz/' -p > skeletons-segfaults-logs.txt
-zgrep No tests/skeletons-output/ok*.out.gz | perl -e 's/\.out.gz.*/.out.gz/' -p > skeletons-false-negative-logs.txt
-perl -e 's/skeletons-output/skeletons/' -p skeletons-segfaults-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > skeletons-segfaults.txt
-perl -e 's/skeletons-output/skeletons/' -p skeletons-false-negative-logs.txt | perl -e 's/\.out.gz/_M.txt/' -p > skeletons-false-negative.txt
+grep -m 1 -H signal skeletons-output/*.log      | \
+    perl -e 's/\.log.*/.out.xz/'    -p > summary/skeletons-segfaults-logs.txt
+parallel -j "$jobs" xzgrep -m 1 -H No ::: skeletons-output/ok*.out.xz | \
+    perl -e 's/\.out.xz.*/.out.xz/' -p > summary/skeletons-false-negative-logs.txt
+perl -e 's/skeletons-output/skeletons-input/' -p summary/skeletons-segfaults-logs.txt | \
+    perl -e 's/\.out.xz/_M.txt.xz/' -p > summary/skeletons-segfaults.txt
+perl -e 's/skeletons-output/skeletons-input/' -p summary/skeletons-false-negative-logs.txt | \
+    perl -e 's/\.out.xz/_M.txt.xz/' -p > summary/skeletons-false-negative.txt
 
-tar cvzf skeletons-segfaults.tar.gz -T skeletons-segfaults.txt
-tar cvzf skeletons-false-negative.tar.gz -T skeletons-false-negative.txt
-tar cvzf skeletons-segfaults-logs.tar.gz -T skeletons-segfaults-logs.txt
-tar cvzf skeletons-false-negative-logs.tar.gz -T skeletons-false-negative-logs.txt
+tar cvzf summary/skeletons-segfaults.tar.gz           -T summary/skeletons-segfaults.txt
+tar cvzf summary/skeletons-false-negative.tar.gz      -T summary/skeletons-false-negative.txt
+tar cvzf summary/skeletons-segfaults-logs.tar.gz      -T summary/skeletons-segfaults-logs.txt
+tar cvzf summary/skeletons-false-negative-logs.tar.gz -T summary/skeletons-false-negative-logs.txt
+
+echo "Number of skeletons: "$(ls -l skeletons-output/*.log | wc -l)
+echo "Segfaults: "$(wc -l summary/skeletons-segfaults.txt)
+echo "False negative: "$(wc -l summary/skeletons-false-negative.txt)
