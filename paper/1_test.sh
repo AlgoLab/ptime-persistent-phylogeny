@@ -29,8 +29,6 @@ base=${n}_${m}_${rate}_${i}
 okfile=ok_${n}_${m}_${rate}_${i}
 nofile=no_${n}_${m}_${rate}_${i}
 
-echo "New run: $n $m $rate $i"
-
 # Generate the instances
 if [[ ( ! -f "$inputdir"/"$okfile"_M.txt ) && ( ! -f "$inputdir"/"$okfile"_M.txt.xz ) ]]
 then 
