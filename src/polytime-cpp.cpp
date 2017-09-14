@@ -541,7 +541,7 @@ bool colonnaSingoletto(int** matrice,int righe,int colonna);
 bool rigaSingoletto(int** matrice,int colonne,int riga);
 bool soloSingoletti(int* componenti, int colonne);
 int sottomatriceProibita(int ** a, int c1, int c2);
-int specieMatrice(int specie, int** matrice, int righe, int colonne, int* componentiRiga);
+int specieMatrice(int* specie, int** matrice, int righe, int colonne, int* componentiRiga);
 int uguali(int** matrice, int righe, int c1, int c2);
 int specieUguali(int* s1, int* s2, int colonne);
 int universale(int carattere, int* componentiRiga);
@@ -2801,7 +2801,8 @@ for(i=0; i<righe; i++){
                                             flagSpecie=1;
                                       }
                                       //altrimenti determino quale singoletto realizzare
-                                      else flagSpecie=specieMatrice(i, grbMA, righe, colonne, componentiRiga);
+                                     // else flagSpecie=specieMatrice(i, grbMA, righe, colonne, componentiRiga);
+                                     else flagSpecie=specieMatrice(grbMA[i], matrice, righe, colonne, componentiRiga);
                                       //se realizzando i caratteri del singoletto realizzo una specie della matrice iniziale
                                       if(flagSpecie==1){
                                          // cout<<"ok specie di matrice iniziale"<<endl;
@@ -3181,8 +3182,9 @@ else{
         for(i=0; i<1000; i++) corrispondenzaSpecie[i]=0;
         for(i=0; i<1000; i++){
                   if((safe[i]==1)&(safeGRB[i]==1)){
-                        //int flagSpecie=specieMatrice(percorsi[i][0], matrice, colonne, componentiRiga);
-                        int flagSpecie=specieMatrice(percorsi[i][0], grbMA, righe, colonne, componentiRiga);
+                        //int flagSpecie=specieMatrice(percorsi[i][0], matrice, righe, colonne, componentiRiga);
+                        int flagSpecie=specieMatrice(grbMA[percorsi[i][0]], matrice, righe, colonne, componentiRiga);
+                        //int flagSpecie=specieMatrice(percorsi[i][0], grbMA, righe, colonne, componentiRiga);
                         if(flagSpecie==1){
                                           cout<<percorsi[i][0]<<" specie di matrice iniziale"<<endl;
                                           corrispondenzaSpecie[i]=1;
@@ -3354,7 +3356,7 @@ else{
             cout<<"max: "<<max<<endl;
 
                     for(i=0; i<1000; i++){
-                            cout<<"stop: "<<stop<<endl;
+                          //  cout<<"stop: "<<stop<<endl;
                             if(stop==0){
                                 if((safe[i]==1)&(safeGRB[i]==1)){
                                        // if((corrispondenzaSpecie[i]==1) & (i==max)){
@@ -3527,15 +3529,15 @@ int Overlap(int c1, int c2){
     return 0;
 }
 
-int specieMatrice(int specie, int** matrice, int righe, int colonne, int* componentiRiga){
+int specieMatrice(int* specie, int** matrice, int righe, int colonne, int* componentiRiga){
     int i,j,trovata,cont,ko;
     int* car_attivi;
     int* car_singoletto;
-    int* verifica;
-cout<<"dentro specieMatrice: verifico specie "<<specie<<endl;
+   // int* verifica;
+cout<<"dentro specieMatrice"<<endl;
 printMatrix(matrice,righe,colonne);
 
-     verifica=new int[colonneO];
+   //  verifica=new int[colonneO];
    /*  for(i=0; i<colonneO; i++) verifica[i]=0;
 
     //A: determino caratteri attivi del GRB
