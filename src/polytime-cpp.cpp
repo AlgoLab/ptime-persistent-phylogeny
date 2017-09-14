@@ -3570,23 +3570,18 @@ printMatrix(matrice,righe,colonne);
             if(car_singoletto[i]==1) verifica[i]=1;
     }*/
 
-    for(i=0; i<colonneO; i++) verifica[i]=matrice[specie][i];
+   // for(i=0; i<colonneO; i++) verifica[i]=matrice[specie][i];
     cout<<"specie da verificare: ";
-    for(i=0; i<colonneO; i++) cout<<verifica[i];
+    for(i=0; i<colonne; i++) cout<<specie[i];
     cout<<endl;
-    //verifico se la specie costruita corrisponde ad una specie della matrice iniziale
-    for(i=0; i<righeO; i++){
-        trovata=specieUguali(verifica, matriceO[i], colonneO);
+
+    for(i=0; i<righe; i++){
+        trovata=specieUguali(specie, matrice[i], colonne);
         if(trovata==1) {
                 cout<<"trovata specie corrispondente!!"<<endl;
                 return 1;
         }
     }
-
-
-    delete[] car_attivi;
-    delete[] car_singoletto;
-    delete[] verifica;
     cout<<"no specie corrispondente"<<endl;
     return 0;
 }
