@@ -23,8 +23,8 @@ CC_FULL = $(CC) $(CFLAGS) $(CFLAGS_LIBS)
 paper: bin
 	cd paper && ./run_experiment
 
-# dist: CFLAGS +=  -O3 -DNDEBUG
-# dist: bin
+dist: CFLAGS +=  -O3 -DNDEBUG
+dist: bin
 bin: $(P)
 
 # debug: CFLAGS += -DDEBUG -O0
