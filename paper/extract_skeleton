@@ -53,7 +53,7 @@ def extract_distinct_rows(matrix, columns):
 f = sys.stdin.readlines()
 (num_species, num_characters) = [int(x) for x in f[0].rstrip().split(' ')]
 
-matrix = [ row.rstrip().split(' ') for row in f[2:] ]
+matrix = [row.rstrip().split(' ') for row in f[2:]]
 
 columns = [ ]
 for c in range(num_characters):
