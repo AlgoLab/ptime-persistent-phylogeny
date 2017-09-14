@@ -34,11 +34,13 @@ def maximal_characters(cols):
                 maximal.remove(small)
                 found = True
                 break
+    # print(maximal)
     return maximal
 
 # Do columns a and b overlap?
 def overlapp(cols, a, b):
-    return not (cols[a] <= cols[b] or cols[b] <= cols[a])
+    # print('overlap', a, b, cols[a], cols[b], cols[a] <= cols[b], cols[b] <= cols[a], cols[a].isdisjoint(cols[b]))
+    return not (cols[a] <= cols[b] or cols[b] <= cols[a] or cols[a].isdisjoint(cols[b]))
 
 
 def extract_distinct_rows(matrix, columns):
@@ -67,9 +69,9 @@ while len(queue) > 0:
     outside = set(range(num_characters)).difference(skeleton)
     s = queue.pop()
     overlap = set([ext for ext in outside if overlapp(columns, s, ext)])
-    # print(s, outside)
-    # print(queue)
-    # print(overlap)
+    # print("s, outside", s, outside)
+    # print("queue", queue)
+    # print("overlap", overlap)
     # print('======')
     if len(overlap) > 0:
         skeleton = skeleton.union(overlap)
