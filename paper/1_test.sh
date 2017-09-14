@@ -86,7 +86,7 @@ do
         fullcmd="$timecmd $bin $infile > $outfile"
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
-        xz -f9 "$outfile"
+        xz -f "$outfile"
         rm -f "$infile"
     fi
 done
@@ -109,7 +109,7 @@ do
         fullcmd="$timecmd $bin $infile > $outfile"
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
-        xz -f9 "$outfile"
+        xz -f "$outfile"
         rm -f "$infile"
     fi
 done
