@@ -54,10 +54,10 @@ perl -e 's/skeletons-output/skeletons-input/' -p summary/skeletons-segfaults-log
 perl -e 's/skeletons-output/skeletons-input/' -p summary/skeletons-false-negative-logs.txt | \
     perl -e 's/\.out.xz/_M.txt.xz/' -p > summary/skeletons-false-negative.txt
 
-tar cvzf summary/skeletons-segfaults.tar.gz           -T summary/skeletons-segfaults.txt
-tar cvzf summary/skeletons-false-negative.tar.gz      -T summary/skeletons-false-negative.txt
-tar cvzf summary/skeletons-segfaults-logs.tar.gz      -T summary/skeletons-segfaults-logs.txt
-tar cvzf summary/skeletons-false-negative-logs.tar.gz -T summary/skeletons-false-negative-logs.txt
+tar czf summary/skeletons-segfaults.tar.gz           -T summary/skeletons-segfaults.txt
+tar czf summary/skeletons-false-negative.tar.gz      -T summary/skeletons-false-negative.txt
+tar czf summary/skeletons-segfaults-logs.tar.gz      -T summary/skeletons-segfaults-logs.txt
+tar czf summary/skeletons-false-negative-logs.tar.gz -T summary/skeletons-false-negative-logs.txt
 
 echo "Number of skeletons: "$(ls -l skeletons-output/*.log | wc -l)
 echo "Segfaults: "$(wc -l summary/skeletons-segfaults.txt)
