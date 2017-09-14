@@ -83,7 +83,7 @@ do
             exit 2
         fi
         timecmd="/usr/bin/time -f \"%e\" -o $logfile /usr/bin/timeout -s 9 ${timeout}m"
-        fullcmd="$timecmd $bin $infile > $outfile"
+        fullcmd="$timecmd $bin $infile 2>&1  $outfile"
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
         xz -f "$outfile"
@@ -106,7 +106,7 @@ do
             exit 2
         fi
         timecmd="/usr/bin/time -f \"%e\" -o $logfile /usr/bin/timeout -s 9 ${timeout}m"
-        fullcmd="$timecmd $bin $infile > $outfile"
+        fullcmd="$timecmd $bin $infile 2>&1  $outfile"
 	echo "Solving: $infile > $outfile" 
         eval "$fullcmd"
         xz -f "$outfile"
