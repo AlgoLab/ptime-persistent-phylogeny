@@ -37,7 +37,6 @@ then
     cd ~/matrixgenerator/generate_persistent || exit 1
     ./generatePersistent.sh "$n" "$m" "$rate" "$okfile" > "$okfile".log
     mv "$okfile"* "$inputdir"/
-    xz -9 "$inputdir"/"$okfile"_M.txt
 fi
 if [[ ( ! -f "$inputdir"/"$nofile"_M.txt ) && ( ! -f "$inputdir"/"$nofile"_M.txt.xz ) ]]
 then 
@@ -46,7 +45,6 @@ then
     cd ~/matrixgenerator/generate_persistent || exit 1
     ./generatePersistent.sh -n "$n" "$m" "$rate" "$nofile"> "$nofile".log
     mv "$nofile"_M.txt "$inputdir"/
-    xz -9 "$inputdir"/"$nofile"_M.txt
 fi
 
 # Generate skeletons
@@ -54,17 +52,13 @@ if [[ ( ! -f "$inputdir"/../skeletons-input/"$okfile"_M.txt ) && ( ! -f "$inputd
 then 
     echo "generate skeleton: ${inputdir}/${okfile}_M.txt"
     touch "$inputdir"/../skeletons-input/"$okfile"_M.txt
-    xzcat "$inputdir"/"$okfile"_M.txt.xz | "$bindir"/extract_skeleton > "$inputdir"/../skeletons-input/"$okfile"_M.txt
-    xz -9 "$inputdir"/../skeletons-input/"$okfile"_M.txt
-    rm -f "$inputdir"/../skeletons-input/"$okfile"_M.txt.ms "$inputdir"/"$okfile"_M.txt
+    "$bindir"/extract_skeleton < "$inputdir"/"$okfile"_M.txt > "$inputdir"/../skeletons-input/"$okfile"_M.txt
 fi
 if [[ ( ! -f "$inputdir"/../skeletons-input/"$nofile"_M.txt ) && ( ! -f "$inputdir"/../skeletons-input/"$nofile"_M.txt.xz ) ]]
 then 
     echo "generate skeleton: ${inputdir}/${nofile}_M.txt"
     touch "$inputdir"/../skeletons-input/"$nofile"_M.txt
-    xzcat "$inputdir"/"$nofile"_M.txt.xz | "$bindir"/extract_skeleton > "$inputdir"/../skeletons-input/"$nofile"_M.txt
-    xz -9 "$inputdir"/../skeletons-input/"$nofile"_M.txt
-    rm -f "$inputdir"/../skeletons-input/"$nofile"_M.txt.ms "$inputdir"/"$nofile"_M.txt
+    "$bindir"/extract_skeleton <  "$inputdir"/"$nofile"_M.txt > "$inputdir"/../skeletons-input/"$nofile"_M.txt
 fi
 
 # Solving instances
@@ -76,18 +70,17 @@ do
     if [[ ( ! -f "$logfile" ) && ( ! -f "$logfile".xz ) ]]
     then
         touch "$logfile"
-        unxz -k "$infile".xz
         if [ ! -f "$infile" ]
         then
             echo "Missing $infile!"
             exit 2
         fi
         timecmd="/usr/bin/time -f \"%e\" -o $logfile /usr/bin/timeout -s 9 ${timeout}m"
-        fullcmd="$timecmd $bin $infile 2>&1  $outfile"
-	echo "Solving: $infile > $outfile" 
+        fullcmd="$timecmd $bin $infile 2>&1 >  $outfile"
+	echo "Solving: $infile > $outfile"
+        echo "Solving: $fullcmd"
         eval "$fullcmd"
         xz -f "$outfile"
-        rm -f "$infile"
     fi
 done
 # Solving skeletons
@@ -99,17 +92,16 @@ do
     if [[ ( ! -f "$logfile" ) && ( ! -f "$logfile".xz ) ]]
     then
         touch "$logfile"
-        unxz -k "$infile".xz
         if [ ! -f "$infile" ]
         then
             echo "Missing $infile!"
             exit 2
         fi
         timecmd="/usr/bin/time -f \"%e\" -o $logfile /usr/bin/timeout -s 9 ${timeout}m"
-        fullcmd="$timecmd $bin $infile 2>&1  $outfile"
+        fullcmd="$timecmd $bin $infile 2>&1 >  $outfile"
 	echo "Solving: $infile > $outfile" 
+        echo "Solving: $fullcmd"
         eval "$fullcmd"
         xz -f "$outfile"
-        rm -f "$infile"
     fi
 done
