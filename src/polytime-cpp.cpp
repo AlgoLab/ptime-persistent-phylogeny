@@ -882,13 +882,13 @@ printMatrix(grbMA, righe, colonne);
                         }
                 }
         }
- /*cout<<"Hasse:"<<endl;
+ cout<<"Hasse:"<<endl;
    for(i=0; i<righe; i++){
    for(j=0; j<righe; j++){
    cout<<hasse[i][j];
    }
    cout<<endl;
-   }*/
+   }
 
 //trovaSorgenti(matrice, hasse, righe, colonne);
 
@@ -2780,7 +2780,7 @@ else{
         for(i=0; i<1000; i++) corrispondenzaSpecie[i]=0;
         for(i=0; i<1000; i++){
                   if((safe[i]==1)&(safeGRB[i]==1)){
-		  //  cout<<"percorso "<<i<<endl;
+		    cout<<"percorso "<<i<<endl;
                         //int flagSpecie=specieMatrice(percorsi[i][0], matrice, righe, colonne, componentiRiga);
                         int flagSpecie;
 			flagSpecie=specieMatrice(grbMA[percorsi[i][0]], matrice, righe, colonne, componentiRiga);
@@ -2793,7 +2793,7 @@ else{
                         }
                   }
         }
-        if(countCorrispondenze>0){
+  /*      if(countCorrispondenze>0){
             cout<<"!!!realizzo la specie corrispondente alla specie iniziale che contiene il maggior numero di caratteri attivi"<<endl;
 
             printMatrix(matrice,righe,colonne);
@@ -2826,7 +2826,7 @@ else{
                                            cout<<endl;*/
 
                                         //3- realizzo i caratteri della sorgente nel GRB
-                                        for(ii=0; ii<colonneO; ii++){
+    /*                                    for(ii=0; ii<colonneO; ii++){
                                                 cont_neri=0;
                                                 for(jj=0; jj<righeO; jj++){
                                                         if(GRB[jj][ii]==1) {
@@ -2865,11 +2865,11 @@ else{
                                 }
                         }
         }
-        }
+        }*/
 
-        else{ //nessuna specie corrispondente a specie di matrice iniziale
+    //    else{ //nessuna specie corrispondente a specie di matrice iniziale
 //            int specieStar; //specie per cui sto cercando se esiste s*
-            int star[1000];
+        /*    int star[1000];
             int countStar;
             for(i=0; i<1000; i++) star[i]=-1;
             countStar=0;
@@ -2878,13 +2878,13 @@ else{
                     star[i]=trovaStar(matrice, righe, colonne, percorsi[i][0]);
                     countStar=countStar+star[i];
                   }
-              }
+              }*/
            /* cout<<"*************************************STAR***********************************************************: ";
             for(i=0; i<1000; i++)
                {if((safe[i]==1)&(safeGRB[i]==1)) cout<<star[i];}
             cout<<endl;*/
 
-                      if (countStar>0){
+                   /*   if (countStar>0){
                         for(i=0; i<1000; i++){
                             if(stop==0){
                                 if((safe[i]==1)&(safeGRB[i]==1)){
@@ -2898,7 +2898,7 @@ else{
                                            cout<<endl;*/
 
                                         //3- realizzo i caratteri della sorgente nel GRB
-                                        for(ii=0; ii<colonneO; ii++){
+                            /*            for(ii=0; ii<colonneO; ii++){
                                                 cont_neri=0;
                                                 for(jj=0; jj<righeO; jj++){
                                                         if(GRB[jj][ii]==1) {
@@ -2936,11 +2936,11 @@ else{
                                 }
                                 }
                         }
-                      }
+                      }*/
 
         //se non ho specie star, realizzo la specie safe con più car attivi
-                 else if(countStar==0){
-                        cout<<"no star: realizzo la specie safe con più car attivi"<<endl;
+             //    else if(countStar==0){
+                        cout<<"realizzo la specie safe con più car attivi"<<endl;
 
                          int countAttivi[1000];
             for(i=0; i<1000; i++) countAttivi[i]=-1;
@@ -3019,14 +3019,14 @@ else{
                                 }
                 }
                         }
-                 }
+                // }
 
             /*  if((i==(nSo*nSi)-1)&(stop==0)) {
                         cout<<"No soluzione!!!"<<endl;
                         fprintf(outno, "%s\n", fileName);
                         exit(0);
                 }*/
-                }
+            //    }
 }
    }
 }
